@@ -13,5 +13,5 @@ setup(
     package_dir={'': 'src'},
     py_modules=['airfoilprep'],
     license='Apache License, Version 2.0',
-    # install_requires=['numpy'],
+    zip_safe=False
 )
