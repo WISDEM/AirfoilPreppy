@@ -1,0 +1,6 @@
+airfoilprep.Airfoil.extrapolate
+===============================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Airfoil.extrapolate

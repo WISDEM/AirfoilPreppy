@@ -1,0 +1,6 @@
+airfoilprep.Airfoil.initFromAerodynFile
+=======================================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Airfoil.initFromAerodynFile

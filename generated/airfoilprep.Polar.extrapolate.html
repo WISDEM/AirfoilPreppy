@@ -1,0 +1,139 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>airfoilprep.Polar.extrapolate &mdash; AirfoilPrep.py 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nrel.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="AirfoilPrep.py 0.1.0 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">AirfoilPrep.py 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="airfoilprep-polar-extrapolate">
+<h1>airfoilprep.Polar.extrapolate<a class="headerlink" href="#airfoilprep-polar-extrapolate" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="airfoilprep.Polar.extrapolate">
+<tt class="descclassname">Polar.</tt><tt class="descname">extrapolate</tt><big>(</big><em>cdmax</em>, <em>AR=None</em>, <em>cdmin=0.001</em>, <em>nalpha=15</em><big>)</big><a class="reference internal" href="../_modules/airfoilprep.html#Polar.extrapolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airfoilprep.Polar.extrapolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extrapolates force coefficients up to +/- 180 degrees using Viterna&#8217;s method
+<a class="reference internal" href="../documentation.html#viterna1982theoretical-and">[3]</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>cdmax</strong> : float</p>
+<blockquote>
+<div><p>maximum drag coefficient</p>
+</div></blockquote>
+<p><strong>AR</strong> : float, optional</p>
+<blockquote>
+<div><p>aspect ratio = (rotor radius / chord_75% radius)
+if provided, cdmax is computed from AR</p>
+</div></blockquote>
+<p><strong>cdmin: float, optional</strong> :</p>
+<blockquote>
+<div><p>minimum drag coefficient.  used to prevent negative values that can sometimes occur
+with this extrapolation method</p>
+</div></blockquote>
+<p><strong>nalpha: int, optional</strong> :</p>
+<blockquote>
+<div><p>number of points to add in each segment of Viterna method</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>polar</strong> : Polar</p>
+<blockquote class="last">
+<div><p>a new Polar object</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>If the current polar already supplies data beyond 90 degrees then
+this method cannot be used in its current form and will just return itself.</p>
+<p>If AR is provided, then the maximum drag coefficient is estimated as</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cdmax</span> <span class="o">=</span> <span class="mf">1.11</span> <span class="o">+</span> <span class="mf">0.018</span><span class="o">*</span><span class="n">AR</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/generated/airfoilprep.Polar.extrapolate.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">AirfoilPrep.py 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, NREL.
+      Last updated on Jun 03, 2013.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

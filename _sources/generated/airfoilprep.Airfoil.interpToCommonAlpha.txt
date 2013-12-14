@@ -1,0 +1,6 @@
+airfoilprep.Airfoil.interpToCommonAlpha
+=======================================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Airfoil.interpToCommonAlpha

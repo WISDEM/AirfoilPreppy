@@ -1,0 +1,6 @@
+airfoilprep.Polar.blend
+=======================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Polar.blend

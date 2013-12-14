@@ -1,0 +1,140 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>airfoilprep.Polar.correction3D &mdash; AirfoilPrep.py 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nrel.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="AirfoilPrep.py 0.1.0 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">AirfoilPrep.py 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="airfoilprep-polar-correction3d">
+<h1>airfoilprep.Polar.correction3D<a class="headerlink" href="#airfoilprep-polar-correction3d" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="airfoilprep.Polar.correction3D">
+<tt class="descclassname">Polar.</tt><tt class="descname">correction3D</tt><big>(</big><em>r_over_R</em>, <em>chord_over_r</em>, <em>tsr</em>, <em>alpha_max_corr=30</em>, <em>alpha_linear_min=-5</em>, <em>alpha_linear_max=5</em><big>)</big><a class="reference internal" href="../_modules/airfoilprep.html#Polar.correction3D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airfoilprep.Polar.correction3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies 3-D corrections for rotating sections from the 2-D data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>r_over_R</strong> : float</p>
+<blockquote>
+<div><p>local radial position / rotor radius</p>
+</div></blockquote>
+<p><strong>chord_over_r</strong> : float</p>
+<blockquote>
+<div><p>local chord length / local radial location</p>
+</div></blockquote>
+<p><strong>tsr</strong> : float</p>
+<blockquote>
+<div><p>tip-speed ratio</p>
+</div></blockquote>
+<p><strong>alpha_max_corr</strong> : float, optional (deg)</p>
+<blockquote>
+<div><p>maximum angle of attack to apply full correction</p>
+</div></blockquote>
+<p><strong>alpha_linear_min</strong> : float, optional (deg)</p>
+<blockquote>
+<div><p>angle of attack where linear portion of lift curve slope begins</p>
+</div></blockquote>
+<p><strong>alpha_linear_max</strong> : float, optional (deg)</p>
+<blockquote>
+<div><p>angle of attack where linear portion of lift curve slope ends</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>polar</strong> : Polar</p>
+<blockquote class="last">
+<div><p>A new Polar object corrected for 3-D effects</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The Du-Selig method <a class="reference internal" href="../documentation.html#du1998a-3-d-stall-del">[1]</a> is used to correct lift, and
+the Eggers method <a class="reference internal" href="../documentation.html#eggers-jr2003an-assessment-o">[2]</a> is used to correct drag.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/generated/airfoilprep.Polar.correction3D.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">AirfoilPrep.py 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, NREL.
+      Last updated on Jun 03, 2013.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

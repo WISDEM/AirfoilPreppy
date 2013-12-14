@@ -1,0 +1,6 @@
+airfoilprep.Polar.unsteadyparam
+===============================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Polar.unsteadyparam

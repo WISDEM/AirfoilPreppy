@@ -1,0 +1,6 @@
+airfoilprep.Airfoil.getPolar
+============================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Airfoil.getPolar

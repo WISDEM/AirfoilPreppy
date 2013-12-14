@@ -1,0 +1,6 @@
+airfoilprep.Polar.correction3D
+==============================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Polar.correction3D

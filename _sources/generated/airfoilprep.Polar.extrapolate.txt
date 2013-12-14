@@ -1,0 +1,6 @@
+airfoilprep.Polar.extrapolate
+=============================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Polar.extrapolate
