@@ -1,5 +1,4 @@
 include README.md
 include CHANGELOG.md
 include LICENSE.txt
-graft docs/_build/html
 graft test
