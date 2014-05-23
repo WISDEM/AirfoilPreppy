@@ -23,4 +23,4 @@ To check for successful installation, run the unit tests
 
 ## Detailed Documentation
 
-Open `docs/index.html` in your browser.
+<http://wisdem.github.io/AirfoilPreppy/>
