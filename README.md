@@ -1,5 +1,3 @@
-# AirfoilPrep.py
-
 A Python module for preprocessing and evaluating aerodynamic airfoil data---primarily for wind turbine applications.
 
 Author: S. Andrew Ning
