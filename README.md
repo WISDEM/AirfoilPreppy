@@ -2,6 +2,10 @@ A Python module for preprocessing and evaluating aerodynamic airfoil data---prim
 
 Author: S. Andrew Ning
 
+## Detailed Documentation
+
+For detailed documentation see <http://wisdem.github.io/AirfoilPreppy/>
+
 ## Prerequisites
 
 NumPy
@@ -18,7 +22,4 @@ To check for successful installation, run the unit tests
 
     $ python test/test_airfoilprep.py
 
-
-## Detailed Documentation
-
-<http://wisdem.github.io/AirfoilPreppy/>
+For software issues please use <https://github.com/WISDEM/AirfoilPreppy/issues>.  For functionality and theory related questions and comments please use the NWTC forum for [Systems Engineering Software Questions](https://wind.nrel.gov/forum/wind/viewtopic.php?f=34&t=1002).
