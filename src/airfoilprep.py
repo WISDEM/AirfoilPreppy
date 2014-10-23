@@ -28,7 +28,7 @@ import copy
 
 
 
-class Polar:
+class Polar(object):
     """
     Defines section lift, drag, and pitching moment coefficients as a
     function of angle of attack at a particular Reynolds number.
@@ -97,7 +97,7 @@ class Polar:
         cl = cl1 + weight*(cl2-cl1)
         cd = cd1 + weight*(cd2-cd1)
 
-        return Polar(Re, alpha, cl, cd)
+        return type(self)(Re, alpha, cl, cd)
 
 
 
@@ -172,7 +172,7 @@ class Polar:
         delta_cd = delta_cl*(np.sin(alpha) - 0.12*np.cos(alpha))/(np.cos(alpha) + 0.12*np.sin(alpha))
         cd_3d = cd_2d + delta_cd
 
-        return Polar(self.Re, np.degrees(alpha), cl_3d, cd_3d)
+        return type(self)(self.Re, np.degrees(alpha), cl_3d, cd_3d)
 
 
 
@@ -294,7 +294,7 @@ class Polar:
 
         cd = np.maximum(cd, cdmin)  # don't allow negative drag coefficients
 
-        return Polar(self.Re, np.degrees(alpha), cl, cd)
+        return type(self)(self.Re, np.degrees(alpha), cl, cd)
 
 
 
@@ -378,7 +378,7 @@ class Polar:
 
 
 
-class Airfoil:
+class Airfoil(object):
     """A collection of Polar objects at different Reynolds numbers
 
     """
@@ -396,10 +396,12 @@ class Airfoil:
         # sort by Reynolds number
         self.polars = sorted(polars, key=lambda p: p.Re)
 
+        # save type of polar we are using
+        self.polar_type = polars[0].__class__
 
 
     @classmethod
-    def initFromAerodynFile(cls, aerodynFile):
+    def initFromAerodynFile(cls, aerodynFile, polarType=Polar):
         """Construct Airfoil object from AeroDyn file
 
         Parameters
@@ -449,7 +451,7 @@ class Airfoil:
                 cd.append(data[2])
 
 
-            polars.append(Polar(Re, alpha, cl, cd))
+            polars.append(polarType(Re, alpha, cl, cd))
 
         f.close()
 
@@ -626,7 +628,7 @@ class Airfoil:
         for idx, p in enumerate(self.polars):
             cl = np.interp(alpha, p.alpha, p.cl)
             cd = np.interp(alpha, p.alpha, p.cd)
-            polars[idx] = Polar(p.Re, alpha, cl, cd)
+            polars[idx] = self.polar_type(p.Re, alpha, cl, cd)
 
         return Airfoil(polars)
 
