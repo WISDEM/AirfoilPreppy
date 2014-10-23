@@ -23,8 +23,11 @@ limitations under the License.
 
 from math import pi, sin, cos, radians, degrees
 import numpy as np
+import subprocess as sp
 import copy
-# from scipy.interpolate import RectBivariateSpline
+from scipy import interpolate
+import os
+from StringIO import StringIO
 
 
 
@@ -456,6 +459,214 @@ class Airfoil(object):
         f.close()
 
         return cls(polars)
+
+
+
+    @classmethod
+    def initFromGeometry(Cls, geometryFile, Res):
+        """Construct Airfoil object file describing an airfoil by querying XFOIL for Cl and Cd
+
+        Parameters
+        ----------
+        geometryFile : str
+            path/name of a properly formatted file with points describing an airfoil
+            e.g.   
+
+                filename: s828.txt
+
+                   x/c          y/c
+                ---------    --------
+                0.844781     0.040401
+                0.679231     0.083519
+                0.499036     0.102526
+                0.311835     0.093478
+                0.148865     0.067332
+                0.038591     0.032138
+                0.000384     0.002246
+                0.000083     -0.000824
+                0.004825     -0.006272
+                0.078778     -0.029393
+                0.226326     -0.046714
+                0.419762     -0.056366
+                0.622793     -0.055227
+                0.799991     -0.036719
+
+        Res : list
+            list of Reynolds number where XFOIL should generate Cl and Cd
+
+        Returns
+        -------
+        obj : Airfoil
+
+        Notes
+        -----
+        The file xfoil need to be in the same path as this script.
+
+        """
+        
+        def readAFGeomFile(geometryFile):
+            """Read geometry file trying to be forgiving for varying formats"""
+
+            xs, ys = [], []
+
+            with open(geometryFile) as f:
+                xs, ys = [], []
+                content = f.readlines()
+
+                for row in content:
+                    stripedRow = [c.strip() for c in row.split()]
+                    try:
+                        xs.append(float(stripedRow[0]))
+                        ys.append(float(stripedRow[1]))
+                    except:
+                        pass
+
+            return xs, ys
+
+        def connectTheDots(x, y):
+            """Connect the dots with a spline interpolating to 200 points"""
+
+            if len(x) < 200:
+                tck,u = interpolate.splprep([x,y],s=0) # Find the apropiate spline
+                unew = np.arange(0,1.005,0.005)
+                out = interpolate.splev(unew,tck)
+
+                return out[0], out[1]
+            else:
+                return x, y
+
+        def writeXfoilFile(x, y, fileName="temp.dat"):
+            """Write a temp file that Xfoil will read from"""
+
+            with open(fileName, "w+") as f:
+                decimals = 4
+                f.write(fileName + '\n') # Write fileName at very top of file
+                for i in range(len(x)):
+                    f.write(str(round(x[i],decimals)) + "     " + str(round(y[i],decimals)) + '\n')
+
+        def AoAsteps(start, stop, step):
+            AoAs = []
+            AoA = start
+            if start <= stop:
+                while AoA <= stop:
+                    AoAs.append(AoA)
+                    AoA += step
+            else:
+                while AoA >= stop:
+                    AoAs.append(AoA)
+                    AoA -= step
+            return AoAs
+
+        def getXfoilPolar(Re, AoAstart=-2, AoAstop=20, AoAstep=2, Ncrit=9, airfoil="temp.dat", surpressGUI=1):
+
+            xfoilPath = os.getcwd() + os.path.sep + "xfoil"
+            AoAs = AoAsteps(AoAstart, AoAstop, AoAstep)
+            
+            def issueCmd(Cmd, echo=True):
+                ps.stdin.write(Cmd + '\n')
+
+            ps = sp.Popen([xfoilPath], 
+                stdin=sp.PIPE, 
+                stdout=sp.PIPE,
+                stderr=None,
+                shell=True)
+
+            try:
+                os.remove(str(airfoil) + '.pol') # remove file if it already exists
+            except:
+                pass
+
+            issueCmd('load ' + str(airfoil))
+     
+            if surpressGUI: # make XFOIl surpress the visuals since they can make you go cray cray
+                issueCmd('PLOP')
+                issueCmd('G')
+                issueCmd('')
+
+            issueCmd('PANE') # adds points if needed
+            issueCmd('PANE')
+            issueCmd('OPER')
+
+            if not Ncrit == 9:
+                issueCmd('vpar')
+                issueCmd('n ' + str(Ncrit))
+                issueCmd('')
+
+            issueCmd('VISC ' + str(Re))
+            issueCmd('iter 50')
+            issueCmd('PACC')
+            issueCmd(str(airfoil) + '.pol')
+            issueCmd('')
+            issueCmd('ASEQ '+str(AoAstart)+' '+str(AoAstop)+' '+str(AoAstep))
+            issueCmd('PACC')
+            issueCmd('')
+            issueCmd('quit')
+            outputFromTerminal = ps.stdout.read()
+
+            with open(str(airfoil) + '.pol') as f: # read file generated by XFOIL
+                try:
+                    content = f.readlines()
+                    if len(content) > 14:
+                        content = StringIO("\n".join(content[12:]))
+                        content = np.loadtxt(content)
+                        alfa = content[:,0]
+                        Cl = content[:,1]
+                        Cd = content[:,2]
+                        Cm = content[:,3]
+
+                        ClDict = dict(zip(alfa, Cl))
+                        CdDict = dict(zip(alfa, Cd))
+                        CmDict = dict(zip(alfa, Cm))
+
+                        Cl, Cd, Cm = [], [], []
+
+                        for AoA in AoAs:
+                            try:
+                                Cl.append(ClDict[AoA])
+                                Cd.append(CdDict[AoA])
+                                Cm.append(CmDict[AoA])
+                            except KeyError:
+                                Cl.append(0)
+                                Cd.append(0)
+                                Cm.append(0)
+
+                        return AoAs, fillHoles(Cl), fillHoles(Cd), fillHoles(Cm)
+                    else:
+                        return None, None, None, None
+                     
+                except:
+                    return None, None, None, None      
+
+        def fillHoles(data):
+            """Filling holes by interpolating where XFOIL didn't converge instead of running again"""
+
+            for i, each in enumerate(data):
+
+                firstInd = np.nonzero(each)[0][0]
+                lastInd = np.nonzero(each)[0][-1]
+
+                fix = each[firstInd:lastInd]
+                x, = np.nonzero(fix)
+
+                fixed = np.interp(np.arange(len(fix)), x, fix[x])
+
+                data[i, firstInd:lastInd] = fixed
+
+            return data
+
+        # initialize
+        polars = []
+
+        xs, ys = readAFGeomFile(geometryFile)
+        xs, ys = connectTheDots(xs, ys) # interpolate if low res
+
+        writeXfoilFile(xs, ys) # write to disk so XFOIL can read it
+
+        for Re in Res:           
+            alpha, Cl, Cd, Cm = getXfoilPolar(Re) 
+            polars.append(Polar(Re, alpha, Cl, Cd))
+
+        return Cls(polars)
 
 
 
