@@ -18,9 +18,13 @@ class TestBlend(unittest.TestCase):
               0.0156, 0.0162, 0.0173, 0.0191, 0.0215, 0.0248, 0.0339,
               0.0544, 0.0452, 0.0445, 0.067, 0.0748, 0.1028, 0.1473,
               0.2819, 0.2819, 0.2819, 0.3]
+        cm = [-0.0044, -0.0051, 0.0018, -0.0216, -0.0282, -0.0346, -0.0405,
+              -0.0455, -0.0507, -0.0404, -0.0321, -0.0281, -0.0284, -0.0322,
+              -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242, -0.1155,
+              -0.1068, -0.0981, -0.0894, -0.0807]
         Re = 1
 
-        self.polar1 = Polar(Re, alpha, cl, cd)
+        self.polar1 = Polar(Re, alpha, cl, cd, cm)
 
         alpha = [-3.04, -2.03, -1.01, 0.01, 1.03, 2.05, 3.07, 4.09, 5.11,
                  6.13, 7.14, 8.16, 9.17, 10.18, 11.18, 12.19, 13.18, 14.18,
@@ -34,8 +38,12 @@ class TestBlend(unittest.TestCase):
               0.01872, 0.01944, 0.02076, 0.02292, 0.0258, 0.02976, 0.04068,
               0.06528, 0.05424, 0.0534, 0.0804, 0.08976, 0.12336, 0.17676,
               0.33828, 0.33828, 0.33828, 0.35, 0.4, 0.45, 0.5]
+        cm = [-0.0037, -0.0044, -0.0051, 0.0018, -0.0216, -0.0282, -0.0346,
+              -0.0405, -0.0455, -0.0507, -0.0404, -0.0321, -0.0281, -0.0284,
+              -0.0322, -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242,
+              -0.1155, -0.1068, -0.0981, -0.0894, -0.0807, -0.072, -0.0633]
 
-        self.polar2 = Polar(Re, alpha, cl, cd)
+        self.polar2 = Polar(Re, alpha, cl, cd, cm)
 
 
     def test_blend1(self):
@@ -54,15 +62,21 @@ class TestBlend(unittest.TestCase):
                     0.0172, 0.0178, 0.0190, 0.0210, 0.0237, 0.0273, 0.0373,
                     0.0598, 0.0497, 0.0490, 0.0737, 0.0822, 0.1131, 0.1620,
                     0.3101, 0.3101, 0.3101, 0.4000]
+        cm_blend = [-0.00405, -0.00475, -0.00165, -0.0099, -0.0249, -0.0314,
+                    -0.03755, -0.043, -0.0481, -0.04555, -0.03625, -0.0301,
+                    -0.02825, -0.0303, -0.03415, -0.0362, -0.0378, -0.03955,
+                    -0.06905, -0.11125, -0.11985, -0.11115,-0.10245, -0.09375,
+                    -0.072]
 
         # re-interpolate b/c angles of attack are different
         cl3 = np.interp(alpha_blend, polar3.alpha, polar3.cl)
         cd3 = np.interp(alpha_blend, polar3.alpha, polar3.cd)
+        cm3 = np.interp(alpha_blend, polar3.alpha, polar3.cm)
 
         # should be within 1e-3
         np.testing.assert_allclose(cl3, cl_blend, atol=1e-3)
         np.testing.assert_allclose(cd3, cd_blend, atol=1e-3)
-
+        np.testing.assert_allclose(cm3, cm_blend, atol=1e-3)
 
     def test_blend1_w_airfoil(self):
 
@@ -83,16 +97,21 @@ class TestBlend(unittest.TestCase):
                     0.0172, 0.0178, 0.0190, 0.0210, 0.0237, 0.0273, 0.0373,
                     0.0598, 0.0497, 0.0490, 0.0737, 0.0822, 0.1131, 0.1620,
                     0.3101, 0.3101, 0.3101, 0.4000]
+        cm_blend = [-0.00405, -0.00475, -0.00165, -0.0099, -0.0249, -0.0314,
+                    -0.03755, -0.043, -0.0481, -0.04555, -0.03625, -0.0301,
+                    -0.02825, -0.0303, -0.03415, -0.0362, -0.0378, -0.03955,
+                    -0.06905, -0.11125, -0.11985, -0.11115,-0.10245, -0.09375,
+                    -0.072]
 
         # re-interpolate b/c angles of attack are different
         cl3 = np.interp(alpha_blend, polar3.alpha, polar3.cl)
         cd3 = np.interp(alpha_blend, polar3.alpha, polar3.cd)
+        cm3 = np.interp(alpha_blend, polar3.alpha, polar3.cm)
 
         # should be within 1e-3
         np.testing.assert_allclose(cl3, cl_blend, atol=1e-3)
         np.testing.assert_allclose(cd3, cd_blend, atol=1e-3)
-
-
+        np.testing.assert_allclose(cm3, cm_blend, atol=1e-3)
 
     def test_blend2(self):
 
@@ -109,16 +128,21 @@ class TestBlend(unittest.TestCase):
                     0.0178, 0.0185, 0.0197, 0.0218, 0.0245, 0.0283, 0.0386,
                     0.0620, 0.0515, 0.0507, 0.0764, 0.0852, 0.1172, 0.1679,
                     0.3214, 0.3214, 0.3214, 0.4400]
-
+        cm_blend = [-0.00391, -0.00461, -0.00303, -0.00522, -0.02358,
+                    -0.03012, -0.03637, -0.042, -0.04706, -0.04761,
+                    -0.03791, -0.0309, -0.02819, -0.02954, -0.03337,
+                    -0.03616, -0.0372, -0.03945, -0.057347, -0.10607,
+                    -0.12159, -0.11289, -0.10419, -0.09549, -0.06852]
 
         # re-interpolate b/c angles of attack are different
         cl3 = np.interp(alpha_blend, polar3.alpha, polar3.cl)
         cd3 = np.interp(alpha_blend, polar3.alpha, polar3.cd)
+        cm3 = np.interp(alpha_blend, polar3.alpha, polar3.cm)
 
         # should be within 1e-3
         np.testing.assert_allclose(cl3, cl_blend, atol=1e-3)
         np.testing.assert_allclose(cd3, cd_blend, atol=1e-3)
-
+        np.testing.assert_allclose(cm3, cm_blend, atol=1e-3)
 
     def test_blend3(self):
 
@@ -135,16 +159,21 @@ class TestBlend(unittest.TestCase):
                     0.0162, 0.0168, 0.0180, 0.0199, 0.0224, 0.0258, 0.0353,
                     0.0566, 0.0470, 0.0463, 0.0697, 0.0778, 0.1069, 0.1532,
                     0.2932, 0.2932, 0.2932, 0.3400]
-
+        cm_blend = [-0.00426, -0.00496, 0.00042, -0.01692, -0.02688,
+                    -0.03332, -0.03932, -0.0445, -0.04966, -0.04246,
+                    -0.03376, -0.0289, -0.02834, -0.03144, -0.03532,
+                    -0.03626, -0.0387, -0.0397, -0.0866, -0.11902,
+                    -0.11724, -0.10854, -0.09984, -0.09114, -0.07722]
 
         # re-interpolate b/c angles of attack are different
         cl3 = np.interp(alpha_blend, polar3.alpha, polar3.cl)
         cd3 = np.interp(alpha_blend, polar3.alpha, polar3.cd)
+        cm3 = np.interp(alpha_blend, polar3.alpha, polar3.cm)
 
         # should be within 1e-3
         np.testing.assert_allclose(cl3, cl_blend, atol=1e-3)
         np.testing.assert_allclose(cd3, cd_blend, atol=1e-3)
-
+        np.testing.assert_allclose(cm3, cm_blend, atol=1e-3)
 
 
 class Test3DStall(unittest.TestCase):
@@ -306,14 +335,17 @@ class TestExtrap(unittest.TestCase):
         cd = [0.0390, 0.0233, 0.0131, 0.0134, 0.0119, 0.0122, 0.0116, 0.0144,
               0.0146, 0.0162, 0.0274, 0.0303, 0.0369, 0.0509, 0.0648, 0.0776,
               0.0917, 0.0994, 0.2306, 0.3142, 0.3186]
+        cm = [-0.0044, -0.0051, 0.0018, -0.0216, -0.0282, -0.0346, -0.0405,
+              -0.0455, -0.0507, -0.0404, -0.0321, -0.0281, -0.0284, -0.0322,
+              -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242, -0.1155]
         Re = 1
-        self.polar = Polar(Re, alpha, cl, cd)
+        self.polar = Polar(Re, alpha, cl, cd, cm)
 
 
     def test_extrap1(self):
 
         cdmax = 1.29
-        newpolar = self.polar.extrapolate(cdmax=cdmax)
+        newpolar = self.polar.extrapolate(cdmax=cdmax, useCM=True)
 
         alpha_extrap = [-180, -170, -160, -150, -140, -130, -120, -110, -100,
                         -90, -80, -70, -60, -50, -40, -30, -20, -10.1, -8.2,
@@ -338,15 +370,24 @@ class TestExtrap(unittest.TestCase):
                      0.2306, 0.3142, 0.3186, 0.4758, 0.6686, 0.8708, 1.0560,
                      1.1996, 1.2818, 1.2900, 1.2818, 1.1996, 1.0560, 0.8708,
                      0.6686, 0.4758, 0.3173, 0.2132, 0.1770]
+        cm_extrap = [0.0000, 0.4000, 0.2431, 0.2568, 0.2865, 0.3185, 0.3458,
+                     0.3632, 0.3672, 0.3559, 0.3443, 0.3182, 0.2808, 0.2362,
+                     0.1886, 0.1414, 0.0942, -0.0044, -0.0051, 0.0018, -0.0216,
+                     -0.0282, -0.0346, -0.0405, -0.0455, -0.0507, -0.0404, -0.0321,
+                     -0.0281, -0.0284, -0.0322, -0.0361, -0.0363, -0.0393, -0.0398,
+                     -0.0983, -0.1242, -0.1155, -0.1710, -0.2202, -0.2637, -0.3002,
+                     -0.3284, -0.3471, -0.3559, -0.3672, -0.3632, -0.3458, -0.3185,
+                     -0.2865, -0.2568, -0.2431, -0.5000, 0.0000]
 
         # re-interpolate b/c angles of attack are different
         cl = np.interp(alpha_extrap, newpolar.alpha, newpolar.cl)
         cd = np.interp(alpha_extrap, newpolar.alpha, newpolar.cd)
+        cm = np.interp(alpha_extrap, newpolar.alpha, newpolar.cm)
 
         # test equality
         np.testing.assert_allclose(cl, cl_extrap, atol=1.5e-4)
         np.testing.assert_allclose(cd, cd_extrap, atol=1.5e-4)
-
+        np.testing.assert_allclose(cm, cm_extrap, atol=5e-3)
 
     def test_extrap1_w_airfoil(self):
 
@@ -378,20 +419,23 @@ class TestExtrap(unittest.TestCase):
                      0.2306, 0.3142, 0.3186, 0.4758, 0.6686, 0.8708, 1.0560,
                      1.1996, 1.2818, 1.2900, 1.2818, 1.1996, 1.0560, 0.8708,
                      0.6686, 0.4758, 0.3173, 0.2132, 0.1770]
+        cm_extrap = np.linspace(0, 0, len(cd_extrap))
 
         # re-interpolate b/c angles of attack are different
         cl = np.interp(alpha_extrap, newpolar.alpha, newpolar.cl)
         cd = np.interp(alpha_extrap, newpolar.alpha, newpolar.cd)
+        cm = np.interp(alpha_extrap, newpolar.alpha, newpolar.cm)
 
         # test equality
         np.testing.assert_allclose(cl, cl_extrap, atol=1.5e-4)
         np.testing.assert_allclose(cd, cd_extrap, atol=1.5e-4)
+        np.testing.assert_allclose(cm, cm_extrap, atol=5e-3)
 
 
     def test_extrap2(self):
 
         cdmax = 1.0
-        newpolar = self.polar.extrapolate(cdmax=cdmax)
+        newpolar = self.polar.extrapolate(cdmax=cdmax, useCM=True)
 
         alpha_extrap = [-180, -170, -160, -150, -140, -130, -120, -110, -100,
                         -90, -80, -70, -60, -50, -40, -30, -20, -10.1, -8.2,
@@ -416,20 +460,29 @@ class TestExtrap(unittest.TestCase):
                      0.2306, 0.3142, 0.3186, 0.4349, 0.5767, 0.7241, 0.8568,
                      0.9560, 1.0069, 1.0000, 1.0069, 0.9560, 0.8568, 0.7241,
                      0.5767, 0.4349, 0.3176, 0.2404, 0.2135]
+        cm_extrap = [0.0000, 0.4000, 0.2432, 0.2354, 0.2500, 0.2695, 0.2864,
+                     0.2961, 0.2956, 0.2834, 0.2776, 0.2603, 0.2337, 0.2013,
+                     0.1663, 0.1310, 0.0942, -0.0044, -0.0051, 0.0018, -0.0216,
+                     -0.0282, -0.0346, -0.0405, -0.0455, -0.0507, -0.0404, -0.0321,
+                     -0.0281, -0.0284, -0.0322, -0.0361, -0.0363, -0.0393, -0.0398,
+                     -0.0983, -0.1242, -0.1155, -0.1577, -0.1930, -0.2239, -0.2494,
+                     -0.2683, -0.2798, -0.2834, -0.2956, -0.2961, -0.2864, -0.2695,
+                     -0.2500, -0.2354, -0.2432, -0.5000, 0.0000]
 
         # re-interpolate b/c angles of attack are different
         cl = np.interp(alpha_extrap, newpolar.alpha, newpolar.cl)
         cd = np.interp(alpha_extrap, newpolar.alpha, newpolar.cd)
+        cm = np.interp(alpha_extrap, newpolar.alpha, newpolar.cm)
 
         # test equality
         np.testing.assert_allclose(cl, cl_extrap, atol=1.5e-4)
         np.testing.assert_allclose(cd, cd_extrap, atol=1.5e-4)
-
+        np.testing.assert_allclose(cm, cm_extrap, atol=5e-3)
 
     def test_extrap3(self):
 
         cdmax = 1.5
-        newpolar = self.polar.extrapolate(cdmax)
+        newpolar = self.polar.extrapolate(cdmax, useCM=True)
 
         alpha_extrap = [-180, -170, -160, -150, -140, -130, -120, -110, -100,
                         -90, -80, -70, -60, -50, -40, -30, -20, -10.1, -8.2,
@@ -454,14 +507,24 @@ class TestExtrap(unittest.TestCase):
                      0.2306, 0.3142, 0.3186, 0.5054, 0.7351, 0.9771, 1.2003,
                      1.3760, 1.4809, 1.5000, 1.4809, 1.3760, 1.2003, 0.9771,
                      0.7351, 0.5054, 0.3170, 0.1936, 0.1506]
+        cm_extrap = [0.0000, 0.4000, 0.2431, 0.2723, 0.3130, 0.3540, 0.3888,
+                     0.4118, 0.4190, 0.4084, 0.3926, 0.3602, 0.3148, 0.2614,
+                     0.2049, 0.1488, 0.0942, -0.0044, -0.0051, 0.0018, -0.0216,
+                     -0.0282, -0.0346, -0.0405, -0.0455, -0.0507, -0.0404, -0.0321,
+                     -0.0281, -0.0284, -0.0322, -0.0361, -0.0363, -0.0393, -0.0398,
+                     -0.0983, -0.1242, -0.1155, -0.1807, -0.2399, -0.2925, -0.3370,
+                     -0.3719, -0.3959, -0.4084, -0.4190, -0.4118, -0.3888, -0.3540,
+                     -0.3130, -0.2723, -0.2431, -0.5000, 0.0000]
 
         # re-interpolate b/c angles of attack are different
         cl = np.interp(alpha_extrap, newpolar.alpha, newpolar.cl)
         cd = np.interp(alpha_extrap, newpolar.alpha, newpolar.cd)
+        cm = np.interp(alpha_extrap, newpolar.alpha, newpolar.cm)
 
         # test equality
         np.testing.assert_allclose(cl, cl_extrap, atol=1.5e-4)
         np.testing.assert_allclose(cd, cd_extrap, atol=1.5e-4)
+        np.testing.assert_allclose(cm, cm_extrap, atol=5e-3)
 
 
 # class TestSpline(unittest.TestCase):
