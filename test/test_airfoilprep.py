@@ -192,10 +192,16 @@ class Test3DStall(unittest.TestCase):
               0.028, 0.024, 0.019, 0.017, 0.015, 0.017, 0.019, 0.021, 0.024,
               0.027, 0.031, 0.037, 0.046, 0.058, 0.074, 0.088, 0.101, 0.114,
               0.128, 0.142, 0.155, 0.321, 0.525, 0.742]
+        cm = [-0.0037, -0.0044, -0.0051, 0.0018, -0.0216, -0.0282, -0.0346,
+              -0.0405, -0.0455, -0.0507, -0.0404, -0.0321, -0.0281, -0.0284,
+              -0.0322, -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242,
+              -0.1155, -0.1068, -0.0981, -0.0894, -0.0807, -0.072, -0.0633,
+              -0.054, -0.045, -0.036, -0.22, -0.13]
 
         Re = 1
 
         self.polar = Polar(Re, alpha, cl, cd)
+        self.polar2 = Polar(Re, alpha, cl, cd, cm)
 
 
     def test_stall1(self):
@@ -321,6 +327,39 @@ class Test3DStall(unittest.TestCase):
         np.testing.assert_allclose(newpolar.cl, cl_3d, atol=1e-3)
         np.testing.assert_allclose(newpolar.cd, cd_3d, atol=1e-3)
 
+    def test_stall4_cm(self):
+        R = 5.0
+        r = 0.5*R
+        chord = 0.5
+        Omega = 100*pi/30
+        Uinf = 10.0
+        tsr = Omega*R/Uinf
+
+        newpolar = self.polar2.correction3D(r/R, chord/r, tsr,
+                                           alpha_max_corr=30,
+                                           alpha_linear_min=-4,
+                                           alpha_linear_max=4)
+
+        cl_3d = [-0.8240, -0.7363, -0.6264, -0.5199, -0.4188, -0.3206, -0.2239,
+                 -0.1319, -0.0502, 0.0485, 0.2233, 0.3369, 0.4347, 0.5532,
+                 0.6839, 0.7254, 0.7849, 0.8629, 0.9361, 1.0082, 1.0777,
+                 1.1246, 1.1628, 1.2031, 1.2228, 1.0916, 1.0589, 1.0682,
+                 1.0914, 1.1188, 1.3329, 1.3112, 1.1640]
+        cd_3d = [0.0335, 0.0291, 0.0277, 0.0261, 0.0245, 0.0239, 0.0239,
+                 0.0249, 0.0259, 0.0268, 0.0245, 0.0195, 0.0167, 0.0156,
+                 0.0171, 0.0185, 0.0211, 0.0248, 0.0286, 0.0336, 0.0416,
+                 0.0538, 0.0686, 0.0890, 0.1085, 0.1345, 0.1586, 0.1822,
+                 0.2061, 0.2303, 0.5612, 0.8872, 1.1769]
+        cm = [-0.0037, -0.0044, -0.0051, 0.0018, -0.0216, -0.0282, -0.0346,
+              -0.0405, -0.0455, -0.0507, -0.0404, -0.0321, -0.0281, -0.0284,
+              -0.0322, -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242,
+              -0.1155, -0.1068, -0.0981, -0.0894, -0.0807, -0.072, -0.0633,
+              -0.054, -0.045, -0.036, -0.22, -0.13]
+
+        # test equality
+        np.testing.assert_allclose(newpolar.cl, cl_3d, atol=1e-3)
+        np.testing.assert_allclose(newpolar.cd, cd_3d, atol=1e-3)
+        np.testing.assert_allclose(newpolar.cm, cm, atol=1e-3)
 
 
 class TestExtrap(unittest.TestCase):
@@ -340,12 +379,13 @@ class TestExtrap(unittest.TestCase):
               -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242, -0.1155]
         Re = 1
         self.polar = Polar(Re, alpha, cl, cd, cm)
+        self.polar2 = Polar(Re, alpha, cl, cd)
 
 
     def test_extrap1(self):
 
         cdmax = 1.29
-        newpolar = self.polar.extrapolate(cdmax=cdmax, useCM=True)
+        newpolar = self.polar.extrapolate(cdmax=cdmax)
 
         alpha_extrap = [-180, -170, -160, -150, -140, -130, -120, -110, -100,
                         -90, -80, -70, -60, -50, -40, -30, -20, -10.1, -8.2,
@@ -392,7 +432,7 @@ class TestExtrap(unittest.TestCase):
     def test_extrap1_w_airfoil(self):
 
         cdmax = 1.29
-        af = Airfoil([self.polar])
+        af = Airfoil([self.polar2])
         newaf = af.extrapolate(cdmax=cdmax)
         newpolar = newaf.polars[0]
 
@@ -435,7 +475,7 @@ class TestExtrap(unittest.TestCase):
     def test_extrap2(self):
 
         cdmax = 1.0
-        newpolar = self.polar.extrapolate(cdmax=cdmax, useCM=True)
+        newpolar = self.polar.extrapolate(cdmax=cdmax)
 
         alpha_extrap = [-180, -170, -160, -150, -140, -130, -120, -110, -100,
                         -90, -80, -70, -60, -50, -40, -30, -20, -10.1, -8.2,
@@ -482,7 +522,7 @@ class TestExtrap(unittest.TestCase):
     def test_extrap3(self):
 
         cdmax = 1.5
-        newpolar = self.polar.extrapolate(cdmax, useCM=True)
+        newpolar = self.polar.extrapolate(cdmax)
 
         alpha_extrap = [-180, -170, -160, -150, -140, -130, -120, -110, -100,
                         -90, -80, -70, -60, -50, -40, -30, -20, -10.1, -8.2,

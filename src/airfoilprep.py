@@ -58,8 +58,10 @@ class Polar(object):
         self.cd = np.array(cd)
         if cm is None:
             self.cm = np.zeros_like(cl)
+            self.useCM = False
         else:
             self.cm = np.array(cm)
+            self.useCM = True
 
 
     def blend(self, other, weight):
@@ -96,18 +98,19 @@ class Polar(object):
         cm1 = np.interp(alpha, self.alpha, self.cm)
         cm2 = np.interp(alpha, other.alpha, other.cm)
 
+        if not self.useCM or not other.useCM:
+            print 'Warning: moment coefficients have not been provided for one or more airfoils and blending is invalid.'
+
         # linearly blend
         Re = self.Re + weight*(other.Re-self.Re)
         cl = cl1 + weight*(cl2-cl1)
         cd = cd1 + weight*(cd2-cd1)
         cm = cm1 + weight*(cm2-cm1)
 
-        all_zeros = np.all(cm == 0)
-
-        if all_zeros:
-            return type(self)(Re, alpha, cl, cd)
-        else:
+        if self.useCM:
             return type(self)(Re, alpha, cl, cd, cm)
+        else:
+            return type(self)(Re, alpha, cl, cd)
 
 
 
@@ -182,11 +185,14 @@ class Polar(object):
         delta_cd = delta_cl*(np.sin(alpha) - 0.12*np.cos(alpha))/(np.cos(alpha) + 0.12*np.sin(alpha))
         cd_3d = cd_2d + delta_cd
 
-        return type(self)(self.Re, np.degrees(alpha), cl_3d, cd_3d)
+        if self.useCM:
+            return type(self)(self.Re, np.degrees(alpha), cl_3d, cd_3d, self.cm)
+        else:
+            return type(self)(self.Re, np.degrees(alpha), cl_3d, cd_3d)
 
 
 
-    def extrapolate(self, cdmax, AR=None, cdmin=0.001, nalpha=15, useCM=False):
+    def extrapolate(self, cdmax, AR=None, cdmin=0.001, nalpha=15):
         """Extrapolates force coefficients up to +/- 180 degrees using Viterna's method
         :cite:`Viterna1982Theoretical-and`.
 
@@ -202,8 +208,6 @@ class Polar(object):
             with this extrapolation method
         nalpha: int, optional
             number of points to add in each segment of Viterna method
-        useCM: boolean, optional
-            extrapolate the values of cm
 
         Returns
         -------
@@ -308,7 +312,7 @@ class Polar(object):
         cd = np.maximum(cd, cdmin)  # don't allow negative drag coefficients
 
         # Extrapolate cm if applicable
-        if useCM:
+        if self.useCM:
             # Setup alpha and cm to be used in extrapolation
             cm1_alpha = floor(self.alpha[0] / 10.0) * 10.0
             cm2_alpha = ceil(self.alpha[-1] / 10.0) * 10.0
@@ -333,8 +337,8 @@ class Polar(object):
                     cm_ext[i] = cm_new
             cm = np.interp(np.degrees(alpha), alpha_cm, cm_ext)
             return type(self)(self.Re, np.degrees(alpha), cl, cd, cm)
-
-        return type(self)(self.Re, np.degrees(alpha), cl, cd)
+        else:
+            return type(self)(self.Re, np.degrees(alpha), cl, cd)
 
 
     def __Viterna(self, alpha, cl_adj):
@@ -495,6 +499,11 @@ class Airfoil(object):
         # save type of polar we are using
         self.polar_type = polars[0].__class__
 
+        if not np.all(np.all(polars).cm == 0):
+            self.useCM = True
+        else:
+            self.useCM = False
+
 
     @classmethod
     def initFromAerodynFile(cls, aerodynFile, polarType=Polar):
@@ -537,6 +546,7 @@ class Airfoil(object):
             cl = []
             cd = []
             cm = []
+
             # read polar information line by line
             while True:
                 line = f.readline()
@@ -551,6 +561,11 @@ class Airfoil(object):
             polars.append(polarType(Re, alpha, cl, cd, cm))
 
         f.close()
+
+        if not np.all(cm == 0):
+            cls.useCM = True
+        else:
+            cls.useCM = False
 
         return cls(polars)
 
@@ -670,7 +685,7 @@ class Airfoil(object):
         return Airfoil(polars)
 
 
-    def extrapolate(self, cdmax, AR=None, cdmin=0.001, useCM=False):
+    def extrapolate(self, cdmax, AR=None, cdmin=0.001):
         """apply high alpha extensions to each polar in airfoil
 
         Parameters
@@ -696,7 +711,7 @@ class Airfoil(object):
         n = len(self.polars)
         polars = [0]*n
         for idx, p in enumerate(self.polars):
-            polars[idx] = p.extrapolate(cdmax, AR, cdmin, useCM=useCM)
+            polars[idx] = p.extrapolate(cdmax, AR, cdmin)
 
         return Airfoil(polars)
 
@@ -770,7 +785,7 @@ class Airfoil(object):
         f.close()
 
 
-    def createDataGrid(self, useCm=False):
+    def createDataGrid(self):
         """interpolate airfoil data onto uniform alpha-Re grid.
 
         Returns
@@ -806,7 +821,8 @@ class Airfoil(object):
             cl[:, idx] = p.cl
             cd[:, idx] = p.cd
             cm[:, idx] = p.cm
-        if useCm:
+
+        if af.useCM:
             return alpha, Re, cl, cm
 
         return alpha, Re, cl, cd
@@ -942,8 +958,7 @@ if __name__ == '__main__':
 
         af = Airfoil.initFromAerodynFile(args.src_file)
 
-        useCM = False  # TODO: Add useCM to command line
-        afext = af.extrapolate(float(args.extrap[0]), useCM)
+        afext = af.extrapolate(float(args.extrap[0]))
 
         if args.common:
             afext = afext.interpToCommonAlpha()
@@ -970,13 +985,13 @@ if __name__ == '__main__':
                 plt.ylabel('drag coefficient')
                 plt.legend([p2, p1], ['orig', 'extrap'], loc='lower right')
 
-                if useCM:
+                if pext.useCM:
                     plt.figure()
                     p1, = plt.plot(pext.alpha, pext.cm, 'r')
                     p2, = plt.plot(p.alpha, p.cm, 'k')
                     plt.xlabel('angle of attack (deg)')
                     plt.ylabel('moment coefficient')
-                    plt.legend([p2, p1], ['orig', 'extrap'], loc='lower right')
+                    plt.legend([p2, p1], ['orig', 'extrap'], loc='upper right')
 
                 # plt.tight_layout()
                 # plt.savefig('/Users/sning/Dropbox/NREL/SysEng/airfoilpreppy/docs/images/extrap.pdf')
@@ -1019,7 +1034,7 @@ if __name__ == '__main__':
                 plt.ylabel('drag coefficient')
                 plt.text(0.2, 0.8, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
 
-                if not np.all(p.cm == 0):
+                if p.useCM:
                     fig = plt.figure()
                     ax = fig.add_subplot(111)
                     plt.plot(p.alpha, p.cm, 'k')
