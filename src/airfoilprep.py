@@ -499,10 +499,8 @@ class Airfoil(object):
         # save type of polar we are using
         self.polar_type = polars[0].__class__
 
-        if not np.all(np.all(polars).cm == 0):
-            self.useCM = True
-        else:
-            self.useCM = False
+        alluseCM = [p.useCM for p in polars]
+        self.useCM = np.all(alluseCM)
 
 
     @classmethod
@@ -561,11 +559,6 @@ class Airfoil(object):
             polars.append(polarType(Re, alpha, cl, cd, cm))
 
         f.close()
-
-        if not np.all(cm == 0):
-            cls.useCM = True
-        else:
-            cls.useCM = False
 
         return cls(polars)
 
@@ -785,7 +778,7 @@ class Airfoil(object):
         f.close()
 
 
-    def createDataGrid(self):
+    def createDataGrid(self, ignoreCM=False):
         """interpolate airfoil data onto uniform alpha-Re grid.
 
         Returns
@@ -822,8 +815,8 @@ class Airfoil(object):
             cd[:, idx] = p.cd
             cm[:, idx] = p.cm
 
-        if af.useCM:
-            return alpha, Re, cl, cm
+        if af.useCM and not ignoreCM:
+            return alpha, Re, cl, cd, cm
 
         return alpha, Re, cl, cd
 
