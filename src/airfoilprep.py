@@ -35,7 +35,7 @@ class Polar(object):
 
     """
 
-    def __init__(self, Re, alpha, cl, cd, cm=None):
+    def __init__(self, Re, alpha, cl, cd, cm):
         """Constructor
 
         Parameters
@@ -48,7 +48,7 @@ class Polar(object):
             lift coefficient
         cd : ndarray
             drag coefficient
-        cm : ndarray (optional)
+        cm : ndarray
             moment coefficient
         """
 
@@ -56,12 +56,7 @@ class Polar(object):
         self.alpha = np.array(alpha)
         self.cl = np.array(cl)
         self.cd = np.array(cd)
-        if cm is None:
-            self.cm = np.zeros_like(cl)
-            self.useCM = False
-        else:
-            self.cm = np.array(cm)
-            self.useCM = True
+        self.cm = np.array(cm)
 
 
     def blend(self, other, weight):
@@ -98,19 +93,13 @@ class Polar(object):
         cm1 = np.interp(alpha, self.alpha, self.cm)
         cm2 = np.interp(alpha, other.alpha, other.cm)
 
-        if not self.useCM or not other.useCM:
-            print 'Warning: moment coefficients have not been provided for one or more airfoils and blending is invalid.'
-
         # linearly blend
         Re = self.Re + weight*(other.Re-self.Re)
         cl = cl1 + weight*(cl2-cl1)
         cd = cd1 + weight*(cd2-cd1)
         cm = cm1 + weight*(cm2-cm1)
 
-        if self.useCM:
-            return type(self)(Re, alpha, cl, cd, cm)
-        else:
-            return type(self)(Re, alpha, cl, cd)
+        return type(self)(Re, alpha, cl, cd, cm)
 
 
 
@@ -185,10 +174,7 @@ class Polar(object):
         delta_cd = delta_cl*(np.sin(alpha) - 0.12*np.cos(alpha))/(np.cos(alpha) + 0.12*np.sin(alpha))
         cd_3d = cd_2d + delta_cd
 
-        if self.useCM:
-            return type(self)(self.Re, np.degrees(alpha), cl_3d, cd_3d, self.cm)
-        else:
-            return type(self)(self.Re, np.degrees(alpha), cl_3d, cd_3d)
+        return type(self)(self.Re, np.degrees(alpha), cl_3d, cd_3d, self.cm)
 
 
 
@@ -311,34 +297,33 @@ class Polar(object):
 
         cd = np.maximum(cd, cdmin)  # don't allow negative drag coefficients
 
-        # Extrapolate cm if applicable
-        if self.useCM:
-            # Setup alpha and cm to be used in extrapolation
-            cm1_alpha = floor(self.alpha[0] / 10.0) * 10.0
-            cm2_alpha = ceil(self.alpha[-1] / 10.0) * 10.0
-            alpha_num = abs(int((-180.0-cm1_alpha)/10.0 - 1))
-            alpha_cm1 = np.linspace(-180.0, cm1_alpha, alpha_num)
-            alpha_cm2 = np.linspace(cm2_alpha, 180.0, int((180.0-cm2_alpha)/10.0 + 1))
-            alpha_cm = np.concatenate((alpha_cm1, self.alpha, alpha_cm2))  # Specific alpha values are needed for cm function to work
-            cm1 = np.zeros(len(alpha_cm1))
-            cm2 = np.zeros(len(alpha_cm2))
-            cm_ext = np.concatenate((cm1, self.cm, cm2))
 
-            cmCoef = self.__CMCoeff(cl_high, cd_high, cm_high)  # get cm coefficient
-            cl_cm = np.interp(alpha_cm, np.degrees(alpha), cl)  # get cl for applicable alphas
-            cd_cm = np.interp(alpha_cm, np.degrees(alpha), cd)  # get cd for applicable alphas
-            alpha_low_deg = self.alpha[0]
-            alpha_high_deg = self.alpha[-1]
-            for i in range(len(alpha_cm)):
-                cm_new = self.__getCM(i, cmCoef, alpha_cm, cl_cm, cd_cm, alpha_low_deg, alpha_high_deg)
-                if cm_new is None:
-                    pass #  For when it reaches the range of cm's that the user provides
-                else:
-                    cm_ext[i] = cm_new
-            cm = np.interp(np.degrees(alpha), alpha_cm, cm_ext)
-            return type(self)(self.Re, np.degrees(alpha), cl, cd, cm)
-        else:
-            return type(self)(self.Re, np.degrees(alpha), cl, cd)
+        # Setup alpha and cm to be used in extrapolation
+        cm1_alpha = floor(self.alpha[0] / 10.0) * 10.0
+        cm2_alpha = ceil(self.alpha[-1] / 10.0) * 10.0
+        alpha_num = abs(int((-180.0-cm1_alpha)/10.0 - 1))
+        alpha_cm1 = np.linspace(-180.0, cm1_alpha, alpha_num)
+        alpha_cm2 = np.linspace(cm2_alpha, 180.0, int((180.0-cm2_alpha)/10.0 + 1))
+        alpha_cm = np.concatenate((alpha_cm1, self.alpha, alpha_cm2))  # Specific alpha values are needed for cm function to work
+        cm1 = np.zeros(len(alpha_cm1))
+        cm2 = np.zeros(len(alpha_cm2))
+        cm_ext = np.concatenate((cm1, self.cm, cm2))
+
+        cmCoef = self.__CMCoeff(cl_high, cd_high, cm_high)  # get cm coefficient
+        cl_cm = np.interp(alpha_cm, np.degrees(alpha), cl)  # get cl for applicable alphas
+        cd_cm = np.interp(alpha_cm, np.degrees(alpha), cd)  # get cd for applicable alphas
+        alpha_low_deg = self.alpha[0]
+        alpha_high_deg = self.alpha[-1]
+        for i in range(len(alpha_cm)):
+            cm_new = self.__getCM(i, cmCoef, alpha_cm, cl_cm, cd_cm, alpha_low_deg, alpha_high_deg)
+            if cm_new is None:
+                pass  # For when it reaches the range of cm's that the user provides
+            else:
+                cm_ext[i] = cm_new
+        cm = np.interp(np.degrees(alpha), alpha_cm, cm_ext)
+        return type(self)(self.Re, np.degrees(alpha), cl, cd, cm)
+
+
 
 
     def __Viterna(self, alpha, cl_adj):
@@ -498,9 +483,6 @@ class Airfoil(object):
 
         # save type of polar we are using
         self.polar_type = polars[0].__class__
-
-        alluseCM = [p.useCM for p in polars]
-        self.useCM = np.all(alluseCM)
 
 
     @classmethod
@@ -778,7 +760,7 @@ class Airfoil(object):
         f.close()
 
 
-    def createDataGrid(self, ignoreCM=False):
+    def createDataGrid(self):
         """interpolate airfoil data onto uniform alpha-Re grid.
 
         Returns
@@ -815,10 +797,9 @@ class Airfoil(object):
             cd[:, idx] = p.cd
             cm[:, idx] = p.cm
 
-        if af.useCM and not ignoreCM:
-            return alpha, Re, cl, cd, cm
 
-        return alpha, Re, cl, cd
+        return alpha, Re, cl, cd, cm
+
 
 
 
@@ -978,13 +959,12 @@ if __name__ == '__main__':
                 plt.ylabel('drag coefficient')
                 plt.legend([p2, p1], ['orig', 'extrap'], loc='lower right')
 
-                if pext.useCM:
-                    plt.figure()
-                    p1, = plt.plot(pext.alpha, pext.cm, 'r')
-                    p2, = plt.plot(p.alpha, p.cm, 'k')
-                    plt.xlabel('angle of attack (deg)')
-                    plt.ylabel('moment coefficient')
-                    plt.legend([p2, p1], ['orig', 'extrap'], loc='upper right')
+                plt.figure()
+                p1, = plt.plot(pext.alpha, pext.cm, 'r')
+                p2, = plt.plot(p.alpha, p.cm, 'k')
+                plt.xlabel('angle of attack (deg)')
+                plt.ylabel('moment coefficient')
+                plt.legend([p2, p1], ['orig', 'extrap'], loc='upper right')
 
                 # plt.tight_layout()
                 # plt.savefig('/Users/sning/Dropbox/NREL/SysEng/airfoilpreppy/docs/images/extrap.pdf')
@@ -1027,13 +1007,12 @@ if __name__ == '__main__':
                 plt.ylabel('drag coefficient')
                 plt.text(0.2, 0.8, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
 
-                if p.useCM:
-                    fig = plt.figure()
-                    ax = fig.add_subplot(111)
-                    plt.plot(p.alpha, p.cm, 'k')
-                    plt.xlabel('angle of attack (deg)')
-                    plt.ylabel('moment coefficient')
-                    plt.text(0.2, 0.8, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
+                fig = plt.figure()
+                ax = fig.add_subplot(111)
+                plt.plot(p.alpha, p.cm, 'k')
+                plt.xlabel('angle of attack (deg)')
+                plt.ylabel('moment coefficient')
+                plt.text(0.2, 0.8, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
 
             plt.show()
 
