@@ -308,18 +308,18 @@ class Polar(object):
         cm1 = np.zeros(len(alpha_cm1))
         cm2 = np.zeros(len(alpha_cm2))
         cm_ext = np.concatenate((cm1, self.cm, cm2))
-
-        cmCoef = self.__CMCoeff(cl_high, cd_high, cm_high)  # get cm coefficient
-        cl_cm = np.interp(alpha_cm, np.degrees(alpha), cl)  # get cl for applicable alphas
-        cd_cm = np.interp(alpha_cm, np.degrees(alpha), cd)  # get cd for applicable alphas
-        alpha_low_deg = self.alpha[0]
-        alpha_high_deg = self.alpha[-1]
-        for i in range(len(alpha_cm)):
-            cm_new = self.__getCM(i, cmCoef, alpha_cm, cl_cm, cd_cm, alpha_low_deg, alpha_high_deg)
-            if cm_new is None:
-                pass  # For when it reaches the range of cm's that the user provides
-            else:
-                cm_ext[i] = cm_new
+        if np.count_nonzero(self.cm) > 0:
+            cmCoef = self.__CMCoeff(cl_high, cd_high, cm_high)  # get cm coefficient
+            cl_cm = np.interp(alpha_cm, np.degrees(alpha), cl)  # get cl for applicable alphas
+            cd_cm = np.interp(alpha_cm, np.degrees(alpha), cd)  # get cd for applicable alphas
+            alpha_low_deg = self.alpha[0]
+            alpha_high_deg = self.alpha[-1]
+            for i in range(len(alpha_cm)):
+                cm_new = self.__getCM(i, cmCoef, alpha_cm, cl_cm, cd_cm, alpha_low_deg, alpha_high_deg)
+                if cm_new is None:
+                    pass  # For when it reaches the range of cm's that the user provides
+                else:
+                    cm_ext[i] = cm_new
         cm = np.interp(np.degrees(alpha), alpha_cm, cm_ext)
         return type(self)(self.Re, np.degrees(alpha), cl, cd, cm)
 

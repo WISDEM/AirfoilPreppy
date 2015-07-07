@@ -197,11 +197,11 @@ class Test3DStall(unittest.TestCase):
               -0.0322, -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242,
               -0.1155, -0.1068, -0.0981, -0.0894, -0.0807, -0.072, -0.0633,
               -0.054, -0.045, -0.036, -0.22, -0.13]
-
+        cm_zeros = np.zeros(len(cm))
         Re = 1
 
-        self.polar = Polar(Re, alpha, cl, cd)
-        self.polar2 = Polar(Re, alpha, cl, cd, cm)
+        self.polar = Polar(Re, alpha, cl, cd, cm)
+        self.polar2 = Polar(Re, alpha, cl, cd, cm_zeros)
 
 
     def test_stall1(self):
@@ -246,6 +246,7 @@ class Test3DStall(unittest.TestCase):
                                 alpha_max_corr=30,
                                 alpha_linear_min=-4,
                                 alpha_linear_max=4)
+        _, _, cl_grid, cd_grid, cm_grid = newaf.createDataGrid()
 
         newpolar = newaf.polars[0]
 
@@ -259,10 +260,17 @@ class Test3DStall(unittest.TestCase):
                  0.0174, 0.0183, 0.0212, 0.0255, 0.0303, 0.0367, 0.0465,
                  0.0615, 0.0800, 0.1047, 0.1301, 0.1695, 0.2047, 0.2384,
                  0.2728, 0.3081, 0.8097, 1.2625, 1.6280]
+        cm_test = [[-0.0037], [-0.0044], [-0.0051], [0.0018], [-0.0216], [-0.0282],
+                   [-0.0346], [-0.0405], [-0.0455], [-0.0507], [-0.0404], [-0.0321],
+                   [-0.0281], [-0.0284], [-0.0322], [-0.0361], [-0.0363], [-0.0393],
+                   [-0.0398], [-0.0983], [-0.1242], [-0.1155], [-0.1068], [-0.0981],
+                   [-0.0894], [-0.0807], [-0.072], [-0.0633], [-0.054], [-0.045],
+                   [-0.036], [-0.22], [-0.13]]
 
         # test equality
         np.testing.assert_allclose(newpolar.cl, cl_3d, atol=1e-3)
         np.testing.assert_allclose(newpolar.cd, cd_3d, atol=1e-3)
+        np.testing.assert_allclose(cm_grid, cm_test, atol=1e-3)
 
 
     def test_stall2(self):
@@ -350,16 +358,17 @@ class Test3DStall(unittest.TestCase):
                  0.0171, 0.0185, 0.0211, 0.0248, 0.0286, 0.0336, 0.0416,
                  0.0538, 0.0686, 0.0890, 0.1085, 0.1345, 0.1586, 0.1822,
                  0.2061, 0.2303, 0.5612, 0.8872, 1.1769]
-        cm = [-0.0037, -0.0044, -0.0051, 0.0018, -0.0216, -0.0282, -0.0346,
-              -0.0405, -0.0455, -0.0507, -0.0404, -0.0321, -0.0281, -0.0284,
-              -0.0322, -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242,
-              -0.1155, -0.1068, -0.0981, -0.0894, -0.0807, -0.072, -0.0633,
-              -0.054, -0.045, -0.036, -0.22, -0.13]
+        # cm = [-0.0037, -0.0044, -0.0051, 0.0018, -0.0216, -0.0282, -0.0346,
+        #       -0.0405, -0.0455, -0.0507, -0.0404, -0.0321, -0.0281, -0.0284,
+        #       -0.0322, -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242,
+        #       -0.1155, -0.1068, -0.0981, -0.0894, -0.0807, -0.072, -0.0633,
+        #       -0.054, -0.045, -0.036, -0.22, -0.13]
+        cm_zeros = np.zeros(len(cd_3d))
 
         # test equality
         np.testing.assert_allclose(newpolar.cl, cl_3d, atol=1e-3)
         np.testing.assert_allclose(newpolar.cd, cd_3d, atol=1e-3)
-        np.testing.assert_allclose(newpolar.cm, cm, atol=1e-3)
+        np.testing.assert_allclose(newpolar.cm, cm_zeros, atol=1e-3)
 
 
 class TestExtrap(unittest.TestCase):
@@ -377,9 +386,10 @@ class TestExtrap(unittest.TestCase):
         cm = [-0.0044, -0.0051, 0.0018, -0.0216, -0.0282, -0.0346, -0.0405,
               -0.0455, -0.0507, -0.0404, -0.0321, -0.0281, -0.0284, -0.0322,
               -0.0361, -0.0363, -0.0393, -0.0398, -0.0983, -0.1242, -0.1155]
+        cm_zeros = np.zeros(len(cm))
         Re = 1
         self.polar = Polar(Re, alpha, cl, cd, cm)
-        self.polar2 = Polar(Re, alpha, cl, cd)
+        self.polar2 = Polar(Re, alpha, cl, cd, cm_zeros)
 
 
     def test_extrap1(self):
