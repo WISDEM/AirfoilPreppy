@@ -20,7 +20,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+from __future__ import print_function
 from math import pi, sin, cos, radians, degrees, tan, ceil, floor
 import numpy as np
 import copy
@@ -393,7 +393,7 @@ class Polar(object):
             elif alpha[i] == -180:
                 cm_new = 0
             else:
-                print "Angle encountered for which there is no CM table value (near +/-180 deg). Program will stop."
+                print("Angle encountered for which there is no CM table value (near +/-180 deg). Program will stop.")
         return cm_new
 
     def unsteadyparam(self, alpha_linear_min=-5, alpha_linear_max=5):
@@ -1015,8 +1015,3 @@ if __name__ == '__main__':
                 plt.text(0.2, 0.8, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
 
             plt.show()
-
-
-
-
-
