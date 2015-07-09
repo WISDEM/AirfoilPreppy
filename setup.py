@@ -10,8 +10,8 @@ setup(
     description='Airfoil preprocessing for wind turbine applications',
     author='S. Andrew Ning',
     author_email='andrew.ning@nrel.gov',
-    package_dir={'': 'src'},
-    py_modules=['airfoilprep'],
+    packages=['airfoilprep'],
+    scripts=['scripts/airfoilprep.py'],
     license='Apache License, Version 2.0',
     zip_safe=False
 )
