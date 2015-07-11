@@ -492,15 +492,14 @@ class Polar(object):
         ax.set_ylabel('drag coefficient')
         ax.legend(loc='best')
 
-        # plot cm (if it exists)
-        if p.useCM:
-            fig = plt.figure()
-            figs.append(fig)
-            ax = fig.add_subplot(111)
-            ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
-            ax.set_xlabel('angle of attack (deg)')
-            ax.set_ylabel('moment coefficient')
-            ax.legend(loc='best')
+        # plot cm
+        fig = plt.figure()
+        figs.append(fig)
+        ax = fig.add_subplot(111)
+        ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
+        ax.set_xlabel('angle of attack (deg)')
+        ax.set_ylabel('moment coefficient')
+        ax.legend(loc='best')
 
         return figs
 
@@ -896,12 +895,11 @@ class Airfoil(object):
                 ax2.set_ylabel('drag coefficient')
                 ax2.legend(loc='best')
 
-                # plot cm (if it exists)
-                if p.useCM:
-                    ax3.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
-                    ax3.set_xlabel('angle of attack (deg)')
-                    ax3.set_ylabel('moment coefficient')
-                    ax3.legend(loc='best')
+                # plot cm
+                ax3.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
+                ax3.set_xlabel('angle of attack (deg)')
+                ax3.set_ylabel('moment coefficient')
+                ax3.legend(loc='best')
 
         # otherwise, multi figure mode -- plot all on separate figures
         else:
@@ -922,14 +920,13 @@ class Airfoil(object):
                 ax.set_ylabel('drag coefficient')
                 ax.legend(loc='best')
 
-                if p.useCM:
-                    fig = plt.figure()
-                    figs.append(fig)
-                    ax = fig.add_subplot(111)
-                    ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
-                    ax.set_xlabel('angle of attack (deg)')
-                    ax.set_ylabel('moment coefficient')
-                    ax.legend(loc='best')
+                fig = plt.figure()
+                figs.append(fig)
+                ax = fig.add_subplot(111)
+                ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
+                ax.set_xlabel('angle of attack (deg)')
+                ax.set_ylabel('moment coefficient')
+                ax.legend(loc='best')
 
         return figs
 
@@ -1144,8 +1141,3 @@ if __name__ == '__main__':
                 plt.text(0.2, 0.8, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
 
             plt.show()
-
-
-
-
-
