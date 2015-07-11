@@ -460,7 +460,49 @@ class Polar(object):
         return (0.0, degrees(alphaU), degrees(alpha0), m,
                 cnStallUpper, cnStallLower, alpha[minIdx], cd[minIdx])
 
+    def plot(self):
+        """plot cl/cd/cm polar
 
+        Returns
+        -------
+        figs : list of figure handles
+
+        """
+        import matplotlib.pyplot as plt
+
+        p = self
+
+        figs = []
+
+        # plot cl
+        fig = plt.figure()
+        figs.append(fig)
+        ax = fig.add_subplot(111)
+        plt.plot(p.alpha, p.cl, label='Re = ' + str(p.Re/1e6) + ' million')
+        ax.set_xlabel('angle of attack (deg)')
+        ax.set_ylabel('lift coefficient')
+        ax.legend(loc='best')
+
+        # plot cd
+        fig = plt.figure()
+        figs.append(fig)
+        ax = fig.add_subplot(111)
+        ax.plot(p.alpha, p.cd, label='Re = ' + str(p.Re/1e6) + ' million')
+        ax.set_xlabel('angle of attack (deg)')
+        ax.set_ylabel('drag coefficient')
+        ax.legend(loc='best')
+
+        # plot cm (if it exists)
+        if p.useCM:
+            fig = plt.figure()
+            figs.append(fig)
+            ax = fig.add_subplot(111)
+            ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
+            ax.set_xlabel('angle of attack (deg)')
+            ax.set_ylabel('moment coefficient')
+            ax.legend(loc='best')
+
+        return figs
 
 
 class Airfoil(object):
@@ -802,7 +844,94 @@ class Airfoil(object):
 
 
 
+    def plot(self, single_figure=True):
+        """plot cl/cd/cm polars
 
+        Parameters
+        ----------
+        single_figure : bool
+            True  : plot all cl on the same figure (same for cd,cm)
+            False : plot all cl/cd/cm on separate figures
+
+        Returns
+        -------
+        figs : list of figure handles
+
+        """
+
+        import matplotlib.pyplot as plt
+
+        figs = []
+
+        # if in single figure mode (default)
+        if single_figure:
+            # generate figure handles
+            fig1 = plt.figure()
+            ax1 = fig1.add_subplot(111)
+            figs.append(fig1)
+
+            fig2 = plt.figure()
+            ax2 = fig2.add_subplot(111)
+            figs.append(fig2)
+
+            # loop through all polars to see if we need to generate handles for cm figs
+            for p in self.polars:
+                if p.useCM == True:
+                    fig3 = plt.figure()
+                    ax3 = fig3.add_subplot(111)
+                    figs.append(fig3)
+                    break
+
+            # loop through polars and plot
+            for p in self.polars:
+                # plot cl
+                ax1.plot(p.alpha, p.cl, label='Re = ' + str(p.Re/1e6) + ' million')
+                ax1.set_xlabel('angle of attack (deg)')
+                ax1.set_ylabel('lift coefficient')
+                ax1.legend(loc='best')
+
+                # plot cd
+                ax2.plot(p.alpha, p.cd, label='Re = ' + str(p.Re/1e6) + ' million')
+                ax2.set_xlabel('angle of attack (deg)')
+                ax2.set_ylabel('drag coefficient')
+                ax2.legend(loc='best')
+
+                # plot cm (if it exists)
+                if p.useCM:
+                    ax3.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
+                    ax3.set_xlabel('angle of attack (deg)')
+                    ax3.set_ylabel('moment coefficient')
+                    ax3.legend(loc='best')
+
+        # otherwise, multi figure mode -- plot all on separate figures
+        else:
+            for p in self.polars:
+                fig = plt.figure()
+                figs.append(fig)
+                ax = fig.add_subplot(111)
+                ax.plot(p.alpha, p.cl, label='Re = ' + str(p.Re/1e6) + ' million')
+                ax.set_xlabel('angle of attack (deg)')
+                ax.set_ylabel('lift coefficient')
+                ax.legend(loc='best')
+
+                fig = plt.figure()
+                figs.append(fig)
+                ax = fig.add_subplot(111)
+                ax.plot(p.alpha, p.cd, label='Re = ' + str(p.Re/1e6) + ' million')
+                ax.set_xlabel('angle of attack (deg)')
+                ax.set_ylabel('drag coefficient')
+                ax.legend(loc='best')
+
+                if p.useCM:
+                    fig = plt.figure()
+                    figs.append(fig)
+                    ax = fig.add_subplot(111)
+                    ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
+                    ax.set_xlabel('angle of attack (deg)')
+                    ax.set_ylabel('moment coefficient')
+                    ax.legend(loc='best')
+
+        return figs
 
     # def evaluate(self, alpha, Re):
     #     """Get lift/drag coefficient at the specified angle of attack and Reynolds number
