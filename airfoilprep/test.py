@@ -610,6 +610,3 @@ class TestExtrap(unittest.TestCase):
 
 #         self.assertAlmostEqual(cl, 0.16)
 #         self.assertAlmostEqual(cd, 0.0016)
-
-def test_airfoilprep():
-    unittest.main()

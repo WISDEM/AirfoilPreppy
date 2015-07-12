@@ -28,13 +28,13 @@ interpreter:
 
 ```python
 >>> from airfoilprep.test import *
->>> test_airfoilprep()
+>>> unittest.main()
 ```
 
 To test the version in this repository, execute
 
 ```bash
-$ python test.py
+$ nosetests
 ```
 
 For software issues please use <https://github.com/WISDEM/AirfoilPreppy/issues>.
