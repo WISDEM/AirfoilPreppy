@@ -343,7 +343,7 @@ class Polar(object):
 
         found_zero_lift = False
 
-        for i in range(len(self.cm)):
+        for i in range(len(self.cm)-1):
             if abs(self.alpha[i]) < 20.0 and self.cl[i] <= 0 and self.cl[i+1] >= 0:
                 p = -self.cl[i] / (self.cl[i + 1] - self.cl[i])
                 cm0 = self.cm[i] + p * (self.cm[i+1] - self.cm[i])
