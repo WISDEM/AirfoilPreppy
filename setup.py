@@ -11,6 +11,8 @@ setup(
     author='S. Andrew Ning',
     author_email='andrew.ning@nrel.gov',
     package_dir={'': 'src'},
+    package_data: {'airfoilprep': []},
+    packages=['airfoilprep'],
     py_modules=['airfoilprep'],
     license='Apache License, Version 2.0',
     zip_safe=False
