@@ -564,7 +564,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">polar_type</span> <span class="o">=</span> <span class="n">polars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__class__</span>
 
 
-<div class="viewcode-block" id="Airfoil.initFromAerodynFile"><a class="viewcode-back" href="../../generated/airfoilprep.Airfoil.initFromAerodynFile.html#airfoilprep.Airfoil.initFromAerodynFile">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Airfoil.initFromAerodynFile"><a class="viewcode-back" href="../../documentation.html#airfoilprep.Airfoil.initFromAerodynFile">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">initFromAerodynFile</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">aerodynFile</span><span class="p">,</span> <span class="n">polarType</span><span class="o">=</span><span class="n">Polar</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Construct Airfoil object from AeroDyn file</span>
 
@@ -625,7 +625,7 @@
 
 
 
-<div class="viewcode-block" id="Airfoil.getPolar"><a class="viewcode-back" href="../../generated/airfoilprep.Airfoil.getPolar.html#airfoilprep.Airfoil.getPolar">[docs]</a>    <span class="k">def</span> <span class="nf">getPolar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Re</span><span class="p">):</span>
+<div class="viewcode-block" id="Airfoil.getPolar"><a class="viewcode-back" href="../../documentation.html#airfoilprep.Airfoil.getPolar">[docs]</a>    <span class="k">def</span> <span class="nf">getPolar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Re</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Gets a Polar object for this airfoil at the specified Reynolds number.</span>
 
 <span class="sd">        Parameters</span>
@@ -661,7 +661,7 @@
 
 
 
-<div class="viewcode-block" id="Airfoil.blend"><a class="viewcode-back" href="../../generated/airfoilprep.Airfoil.blend.html#airfoilprep.Airfoil.blend">[docs]</a>    <span class="k">def</span> <span class="nf">blend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+<div class="viewcode-block" id="Airfoil.blend"><a class="viewcode-back" href="../../documentation.html#airfoilprep.Airfoil.blend">[docs]</a>    <span class="k">def</span> <span class="nf">blend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Blend this Airfoil with another one with the specified weighting.</span>
 
 
@@ -701,7 +701,7 @@
         <span class="k">return</span> <span class="n">Airfoil</span><span class="p">(</span><span class="n">polars</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Airfoil.correction3D"><a class="viewcode-back" href="../../generated/airfoilprep.Airfoil.correction3D.html#airfoilprep.Airfoil.correction3D">[docs]</a>    <span class="k">def</span> <span class="nf">correction3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r_over_R</span><span class="p">,</span> <span class="n">chord_over_r</span><span class="p">,</span> <span class="n">tsr</span><span class="p">,</span> <span class="n">alpha_max_corr</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<div class="viewcode-block" id="Airfoil.correction3D"><a class="viewcode-back" href="../../documentation.html#airfoilprep.Airfoil.correction3D">[docs]</a>    <span class="k">def</span> <span class="nf">correction3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r_over_R</span><span class="p">,</span> <span class="n">chord_over_r</span><span class="p">,</span> <span class="n">tsr</span><span class="p">,</span> <span class="n">alpha_max_corr</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
                      <span class="n">alpha_linear_min</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha_linear_max</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;apply 3-D rotational corrections to each polar in airfoil</span>
 
@@ -739,7 +739,7 @@
         <span class="k">return</span> <span class="n">Airfoil</span><span class="p">(</span><span class="n">polars</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Airfoil.extrapolate"><a class="viewcode-back" href="../../generated/airfoilprep.Airfoil.extrapolate.html#airfoilprep.Airfoil.extrapolate">[docs]</a>    <span class="k">def</span> <span class="nf">extrapolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cdmax</span><span class="p">,</span> <span class="n">AR</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cdmin</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+<div class="viewcode-block" id="Airfoil.extrapolate"><a class="viewcode-back" href="../../documentation.html#airfoilprep.Airfoil.extrapolate">[docs]</a>    <span class="k">def</span> <span class="nf">extrapolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cdmax</span><span class="p">,</span> <span class="n">AR</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cdmin</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;apply high alpha extensions to each polar in airfoil</span>
 
 <span class="sd">        Parameters</span>
@@ -771,7 +771,7 @@
 
 
 
-<div class="viewcode-block" id="Airfoil.interpToCommonAlpha"><a class="viewcode-back" href="../../generated/airfoilprep.Airfoil.interpToCommonAlpha.html#airfoilprep.Airfoil.interpToCommonAlpha">[docs]</a>    <span class="k">def</span> <span class="nf">interpToCommonAlpha</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Airfoil.interpToCommonAlpha"><a class="viewcode-back" href="../../documentation.html#airfoilprep.Airfoil.interpToCommonAlpha">[docs]</a>    <span class="k">def</span> <span class="nf">interpToCommonAlpha</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Interpolates all polars to a common set of angles of attack</span>
 
 <span class="sd">        Parameters</span>
@@ -803,7 +803,7 @@
 
 
 
-<div class="viewcode-block" id="Airfoil.writeToAerodynFile"><a class="viewcode-back" href="../../generated/airfoilprep.Airfoil.writeToAerodynFile.html#airfoilprep.Airfoil.writeToAerodynFile">[docs]</a>    <span class="k">def</span> <span class="nf">writeToAerodynFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<div class="viewcode-block" id="Airfoil.writeToAerodynFile"><a class="viewcode-back" href="../../documentation.html#airfoilprep.Airfoil.writeToAerodynFile">[docs]</a>    <span class="k">def</span> <span class="nf">writeToAerodynFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Write the airfoil section data to a file using AeroDyn input file style.</span>
 
 <span class="sd">        Parameters</span>
@@ -839,7 +839,7 @@
         <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="Airfoil.createDataGrid"><a class="viewcode-back" href="../../generated/airfoilprep.Airfoil.createDataGrid.html#airfoilprep.Airfoil.createDataGrid">[docs]</a>    <span class="k">def</span> <span class="nf">createDataGrid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Airfoil.createDataGrid"><a class="viewcode-back" href="../../documentation.html#airfoilprep.Airfoil.createDataGrid">[docs]</a>    <span class="k">def</span> <span class="nf">createDataGrid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;interpolate airfoil data onto uniform alpha-Re grid.</span>
 
 <span class="sd">        Returns</span>
