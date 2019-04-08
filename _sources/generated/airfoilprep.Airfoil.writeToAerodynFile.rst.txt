@@ -1,0 +1,6 @@
+airfoilprep.Airfoil.writeToAerodynFile
+======================================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Airfoil.writeToAerodynFile

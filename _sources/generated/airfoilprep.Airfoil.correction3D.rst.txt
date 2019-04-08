@@ -1,0 +1,6 @@
+airfoilprep.Airfoil.correction3D
+================================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Airfoil.correction3D

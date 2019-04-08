@@ -1,0 +1,6 @@
+airfoilprep.Airfoil.blend
+=========================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Airfoil.blend

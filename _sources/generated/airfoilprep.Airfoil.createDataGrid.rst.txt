@@ -1,0 +1,6 @@
+airfoilprep.Airfoil.createDataGrid
+==================================
+
+.. currentmodule:: airfoilprep
+
+.. automethod:: Airfoil.createDataGrid
