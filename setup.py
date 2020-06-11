@@ -10,7 +10,7 @@ setup(
     description='Airfoil preprocessing for wind turbine applications',
     author='NREL WISDEM Team',
     author_email='systems.engineering@nrel.gov',
-    package_dir={'': 'src'},
+    package_data={'airfoilprep': []},
     packages=['airfoilprep'],
     license='Apache License, Version 2.0',
     zip_safe=False
