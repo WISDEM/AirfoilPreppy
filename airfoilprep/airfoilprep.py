@@ -28,6 +28,7 @@ import copy
 # from scipy.interpolate import RectBivariateSpline
 
 
+
 class Polar(object):
     """
     Defines section lift, drag, and pitching moment coefficients as a
@@ -58,6 +59,7 @@ class Polar(object):
         self.cd = np.array(cd)
         self.cm = np.array(cm)
 
+
     def blend(self, other, weight):
         """Blend this polar with another one with the specified weighting
 
@@ -78,8 +80,7 @@ class Polar(object):
         # generate merged set of angles of attack - get unique values
         alpha = np.union1d(self.alpha, other.alpha)
 
-        # truncate (TODO: could also have option to just use one of the polars
-        # for values out of range)
+        # truncate (TODO: could also have option to just use one of the polars for values out of range)
         min_alpha = max(self.alpha.min(), other.alpha.min())
         max_alpha = min(self.alpha.max(), other.alpha.max())
         alpha = alpha[np.logical_and(alpha >= min_alpha, alpha <= max_alpha)]
@@ -94,12 +95,14 @@ class Polar(object):
         cm2 = np.interp(alpha, other.alpha, other.cm)
 
         # linearly blend
-        Re = self.Re + weight * (other.Re - self.Re)
-        cl = cl1 + weight * (cl2 - cl1)
-        cd = cd1 + weight * (cd2 - cd1)
-        cm = cm1 + weight * (cm2 - cm1)
+        Re = self.Re + weight*(other.Re-self.Re)
+        cl = cl1 + weight*(cl2-cl1)
+        cd = cd1 + weight*(cd2-cd1)
+        cm = cm1 + weight*(cm2-cm1)
 
         return type(self)(Re, alpha, cl, cd, cm)
+
+
 
     def correction3D(self, r_over_R, chord_over_r, tsr, alpha_max_corr=30,
                      alpha_linear_min=-5, alpha_linear_max=5):
@@ -145,38 +148,43 @@ class Polar(object):
         a = 1
         b = 1
         d = 1
-        lam = tsr / (1 + tsr**2)**0.5  # modified tip speed ratio
-        expon = d / lam / r_over_R
+        lam = tsr/(1+tsr**2)**0.5  # modified tip speed ratio
+        expon   = d/lam/r_over_R
+        expon_d = d/lam/r_over_R/2.
 
         # find linear region
         idx = np.logical_and(alpha >= alpha_linear_min,
                              alpha <= alpha_linear_max)
         p = np.polyfit(alpha[idx], cl_2d[idx], 1)
         m = p[0]
-        alpha0 = -p[1] / m
+        alpha0 = -p[1]/m
 
         # correction factor
-        fcl = 1.0 / m * (1.6 * chord_over_r / 0.1267 * (a -
-                                                        chord_over_r**expon) / (b + chord_over_r**expon) - 1)
+        fcl = 1.0/m*(1.6*chord_over_r/0.1267*(a-chord_over_r**expon)/(b+chord_over_r**expon)-1)
+        fcd = 1.0/m*(1.6*chord_over_r/0.1267*(a-chord_over_r**expon_d)/(b+chord_over_r**expon_d)-1)
 
-        # not sure where this adjustment comes from (besides AirfoilPrep
-        # spreadsheet of course)
-        adj = ((pi / 2 - alpha) / (pi / 2 - alpha_max_corr))**2
+        # not sure where this adjustment comes from (besides AirfoilPrep spreadsheet of course)
+        adj = ((pi/2-alpha)/(pi/2-alpha_max_corr))**2
         adj[alpha <= alpha_max_corr] = 1.0
 
         # Du-Selig correction for lift
-        cl_linear = m * (alpha - alpha0)
-        cl_3d = cl_2d + fcl * (cl_linear - cl_2d) * adj
+        cl_linear = m*(alpha-alpha0)
+        cl_3d = cl_2d + fcl*(cl_linear-cl_2d)*adj
 
-        # Eggers 2003 correction for drag
-        delta_cl = cl_3d - cl_2d
+        # Du-Selig correction for drag
+        cd0 = np.interp(0., alpha, cd_2d)
+        dcd = cd_2d - cd0
+        cd_3d = cd_2d + fcd*dcd
 
-        delta_cd = delta_cl * \
-            (np.sin(alpha) - 0.12 * np.cos(alpha)) / \
-            (np.cos(alpha) + 0.12 * np.sin(alpha))
-        cd_3d = cd_2d + delta_cd
+        # # Eggers 2003 correction for drag
+        # delta_cl = cl_3d-cl_2d
+
+        # delta_cd = delta_cl*(np.sin(alpha) - 0.12*np.cos(alpha))/(np.cos(alpha) + 0.12*np.sin(alpha))
+        # cd_3d2 = cd_2d + delta_cd
 
         return type(self)(self.Re, np.degrees(alpha), cl_3d, cd_3d, self.cm)
+
+
 
     def extrapolate(self, cdmax, AR=None, cdmin=0.001, nalpha=15):
         """Extrapolates force coefficients up to +/- 180 degrees using Viterna's method
@@ -220,7 +228,7 @@ class Polar(object):
 
         # estimate CD max
         if AR is not None:
-            cdmax = 1.11 + 0.018 * AR
+            cdmax = 1.11 + 0.018*AR
         self.cdmax = max(max(self.cd), cdmax)
 
         # extract matching info from ends
@@ -233,36 +241,34 @@ class Polar(object):
         cl_low = self.cl[0]
         cd_low = self.cd[0]
 
-        if alpha_high > pi / 2:
+        if alpha_high > pi/2:
             raise Exception('alpha[-1] > pi/2')
             return self
-        if alpha_low < -pi / 2:
+        if alpha_low < -pi/2:
             raise Exception('alpha[0] < -pi/2')
             return self
 
         # parameters used in model
         sa = sin(alpha_high)
         ca = cos(alpha_high)
-        self.A = (cl_high - self.cdmax * sa * ca) * sa / ca**2
-        self.B = (cd_high - self.cdmax * sa * sa) / ca
+        self.A = (cl_high - self.cdmax*sa*ca)*sa/ca**2
+        self.B = (cd_high - self.cdmax*sa*sa)/ca
 
         # alpha_high <-> 90
-        alpha1 = np.linspace(alpha_high, pi / 2, nalpha)
-        # remove first element so as not to duplicate when concatenating
-        alpha1 = alpha1[1:]
+        alpha1 = np.linspace(alpha_high, pi/2, nalpha)
+        alpha1 = alpha1[1:]  # remove first element so as not to duplicate when concatenating
         cl1, cd1 = self.__Viterna(alpha1, 1.0)
 
         # 90 <-> 180-alpha_high
-        alpha2 = np.linspace(pi / 2, pi - alpha_high, nalpha)
+        alpha2 = np.linspace(pi/2, pi-alpha_high, nalpha)
         alpha2 = alpha2[1:]
-        cl2, cd2 = self.__Viterna(pi - alpha2, -cl_adj)
+        cl2, cd2 = self.__Viterna(pi-alpha2, -cl_adj)
 
         # 180-alpha_high <-> 180
-        alpha3 = np.linspace(pi - alpha_high, pi, nalpha)
+        alpha3 = np.linspace(pi-alpha_high, pi, nalpha)
         alpha3 = alpha3[1:]
-        cl3, cd3 = self.__Viterna(pi - alpha3, 1.0)
-        cl3 = (alpha3 - pi) / alpha_high * cl_high * \
-            cl_adj  # override with linear variation
+        cl3, cd3 = self.__Viterna(pi-alpha3, 1.0)
+        cl3 = (alpha3-pi)/alpha_high*cl_high*cl_adj  # override with linear variation
 
         if alpha_low <= -alpha_high:
             alpha4 = []
@@ -271,64 +277,53 @@ class Polar(object):
             alpha5max = alpha_low
         else:
             # -alpha_high <-> alpha_low
-            # Note: this is done slightly differently than AirfoilPrep for
-            # better continuity
+            # Note: this is done slightly differently than AirfoilPrep for better continuity
             alpha4 = np.linspace(-alpha_high, alpha_low, nalpha)
-            # also remove last element for concatenation for this case
-            alpha4 = alpha4[1:-2]
-            cl4 = -cl_high * cl_adj + \
-                (alpha4 + alpha_high) / (alpha_low +
-                                         alpha_high) * (cl_low + cl_high * cl_adj)
-            cd4 = cd_low + (alpha4 - alpha_low) / \
-                (-alpha_high - alpha_low) * (cd_high - cd_low)
+            alpha4 = alpha4[1:-2]  # also remove last element for concatenation for this case
+            cl4 = -cl_high*cl_adj + (alpha4+alpha_high)/(alpha_low+alpha_high)*(cl_low+cl_high*cl_adj)
+            cd4 = cd_low + (alpha4-alpha_low)/(-alpha_high-alpha_low)*(cd_high-cd_low)
             alpha5max = -alpha_high
 
         # -90 <-> -alpha_high
-        alpha5 = np.linspace(-pi / 2, alpha5max, nalpha)
+        alpha5 = np.linspace(-pi/2, alpha5max, nalpha)
         alpha5 = alpha5[1:]
         cl5, cd5 = self.__Viterna(-alpha5, -cl_adj)
 
         # -180+alpha_high <-> -90
-        alpha6 = np.linspace(-pi + alpha_high, -pi / 2, nalpha)
+        alpha6 = np.linspace(-pi+alpha_high, -pi/2, nalpha)
         alpha6 = alpha6[1:]
-        cl6, cd6 = self.__Viterna(alpha6 + pi, cl_adj)
+        cl6, cd6 = self.__Viterna(alpha6+pi, cl_adj)
 
         # -180 <-> -180 + alpha_high
-        alpha7 = np.linspace(-pi, -pi + alpha_high, nalpha)
-        cl7, cd7 = self.__Viterna(alpha7 + pi, 1.0)
-        cl7 = (alpha7 + pi) / alpha_high * cl_high * cl_adj  # linear variation
+        alpha7 = np.linspace(-pi, -pi+alpha_high, nalpha)
+        cl7, cd7 = self.__Viterna(alpha7+pi, 1.0)
+        cl7 = (alpha7+pi)/alpha_high*cl_high*cl_adj  # linear variation
 
-        alpha = np.concatenate((alpha7, alpha6, alpha5, alpha4, np.radians(
-            self.alpha), alpha1, alpha2, alpha3))
+        alpha = np.concatenate((alpha7, alpha6, alpha5, alpha4, np.radians(self.alpha), alpha1, alpha2, alpha3))
         cl = np.concatenate((cl7, cl6, cl5, cl4, self.cl, cl1, cl2, cl3))
         cd = np.concatenate((cd7, cd6, cd5, cd4, self.cd, cd1, cd2, cd3))
 
         cd = np.maximum(cd, cdmin)  # don't allow negative drag coefficients
 
+
         # Setup alpha and cm to be used in extrapolation
         cm1_alpha = floor(self.alpha[0] / 10.0) * 10.0
         cm2_alpha = ceil(self.alpha[-1] / 10.0) * 10.0
-        alpha_num = abs(int((-180.0 - cm1_alpha) / 10.0 - 1))
+        alpha_num = abs(int((-180.0-cm1_alpha)/10.0 - 1))
         alpha_cm1 = np.linspace(-180.0, cm1_alpha, alpha_num)
-        alpha_cm2 = np.linspace(cm2_alpha, 180.0, int(
-            (180.0 - cm2_alpha) / 10.0 + 1))
-        # Specific alpha values are needed for cm function to work
-        alpha_cm = np.concatenate((alpha_cm1, self.alpha, alpha_cm2))
+        alpha_cm2 = np.linspace(cm2_alpha, 180.0, int((180.0-cm2_alpha)/10.0 + 1))
+        alpha_cm = np.concatenate((alpha_cm1, self.alpha, alpha_cm2))  # Specific alpha values are needed for cm function to work
         cm1 = np.zeros(len(alpha_cm1))
         cm2 = np.zeros(len(alpha_cm2))
         cm_ext = np.concatenate((cm1, self.cm, cm2))
         if np.count_nonzero(self.cm) > 0:
-            cmCoef = self.__CMCoeff(
-                cl_high, cd_high, cm_high)  # get cm coefficient
-            # get cl for applicable alphas
-            cl_cm = np.interp(alpha_cm, np.degrees(alpha), cl)
-            # get cd for applicable alphas
-            cd_cm = np.interp(alpha_cm, np.degrees(alpha), cd)
+            cmCoef = self.__CMCoeff(cl_high, cd_high, cm_high)  # get cm coefficient
+            cl_cm = np.interp(alpha_cm, np.degrees(alpha), cl)  # get cl for applicable alphas
+            cd_cm = np.interp(alpha_cm, np.degrees(alpha), cd)  # get cd for applicable alphas
             alpha_low_deg = self.alpha[0]
             alpha_high_deg = self.alpha[-1]
             for i in range(len(alpha_cm)):
-                cm_new = self.__getCM(
-                    i, cmCoef, alpha_cm, cl_cm, cd_cm, alpha_low_deg, alpha_high_deg)
+                cm_new = self.__getCM(i, cmCoef, alpha_cm, cl_cm, cd_cm, alpha_low_deg, alpha_high_deg)
                 if cm_new is None:
                     pass  # For when it reaches the range of cm's that the user provides
                 else:
@@ -336,16 +331,18 @@ class Polar(object):
         cm = np.interp(np.degrees(alpha), alpha_cm, cm_ext)
         return type(self)(self.Re, np.degrees(alpha), cl, cd, cm)
 
+
+
+
     def __Viterna(self, alpha, cl_adj):
         """private method to perform Viterna extrapolation"""
 
         alpha = np.maximum(alpha, 0.0001)  # prevent divide by zero
 
-        cl = self.cdmax / 2 * np.sin(2 * alpha) + \
-            self.A * np.cos(alpha)**2 / np.sin(alpha)
-        cl = cl * cl_adj
+        cl = self.cdmax/2*np.sin(2*alpha) + self.A*np.cos(alpha)**2/np.sin(alpha)
+        cl = cl*cl_adj
 
-        cd = self.cdmax * np.sin(alpha)**2 + self.B * np.cos(alpha)
+        cd = self.cdmax*np.sin(alpha)**2 + self.B*np.cos(alpha)
 
         return cl, cd
 
@@ -354,10 +351,10 @@ class Polar(object):
 
         found_zero_lift = False
 
-        for i in range(len(self.cm) - 1):
-            if abs(self.alpha[i]) < 20.0 and self.cl[i] <= 0 and self.cl[i + 1] >= 0:
+        for i in range(len(self.cm)-1):
+            if abs(self.alpha[i]) < 20.0 and self.cl[i] <= 0 and self.cl[i+1] >= 0:
                 p = -self.cl[i] / (self.cl[i + 1] - self.cl[i])
-                cm0 = self.cm[i] + p * (self.cm[i + 1] - self.cm[i])
+                cm0 = self.cm[i] + p * (self.cm[i+1] - self.cm[i])
                 found_zero_lift = True
                 break
 
@@ -366,9 +363,8 @@ class Polar(object):
             cm0 = self.cm[0] + p * (self.cm[1] - self.cm[0])
         self.cm0 = cm0
         alpha_high = radians(self.alpha[-1])
-        XM = (-cm_high + cm0) / (cl_high *
-                                 cos(alpha_high) + cd_high * sin(alpha_high))
-        cmCoef = (XM - 0.25) / tan((alpha_high - pi / 2))
+        XM = (-cm_high + cm0) / (cl_high * cos(alpha_high) + cd_high * sin(alpha_high))
+        cmCoef = (XM - 0.25) / tan((alpha_high - pi/2))
         return cmCoef
 
     def __getCM(self, i, cmCoef, alpha, cl_ext, cd_ext, alpha_low_deg, alpha_high_deg):
@@ -382,15 +378,11 @@ class Polar(object):
                 cm_new = self.cm0
             else:
                 if alpha[i] > 0:
-                    x = cmCoef * tan(radians(alpha[i]) - pi / 2) + 0.25
-                    cm_new = self.cm0 - x * \
-                        (cl_ext[i] * cos(radians(alpha[i])) +
-                         cd_ext[i] * sin(radians(alpha[i])))
+                    x = cmCoef * tan(radians(alpha[i]) - pi/2) + 0.25
+                    cm_new = self.cm0 - x * (cl_ext[i] * cos(radians(alpha[i])) + cd_ext[i] * sin(radians(alpha[i])))
                 else:
-                    x = cmCoef * tan(-radians(alpha[i]) - pi / 2) + 0.25
-                    cm_new = - \
-                        (self.cm0 - x * (-cl_ext[i] * cos(-radians(alpha[i])
-                                                          ) + cd_ext[i] * sin(-radians(alpha[i]))))
+                    x = cmCoef * tan(-radians(alpha[i]) - pi/2) + 0.25
+                    cm_new = -(self.cm0 - x * (-cl_ext[i] * cos(-radians(alpha[i])) + cd_ext[i] * sin(-radians(alpha[i]))))
         else:
             if alpha[i] == 165:
                 cm_new = -0.4
@@ -412,36 +404,6 @@ class Polar(object):
                 print("Angle encountered for which there is no CM table value "
                       "(near +/-180 deg). Program will stop.")
         return cm_new
-
-    def extrapolate_as_cylinder(self):
-        """Extrapolates coefficients up to +/- 180 degrees
-        """
-
-        # extract matching info from ends
-        cl_high = self.cl[-1]
-        cd_high = self.cd[-1]
-        cm_high = self.cm[-1]
-
-        cl_low = self.cl[0]
-        cd_low = self.cd[0]
-        cm_low = self.cm[0]
-
-        alpha_start = np.array([-180., -90])
-        cl_start = cl_low * np.ones_like(alpha_start)
-        cd_start = cd_low * np.ones_like(alpha_start)
-        cm_start = cm_low * np.ones_like(alpha_start)
-
-        alpha_end = np.array([+90., +180.])
-        cl_end = cl_high * np.ones_like(alpha_end)
-        cd_end = cd_high * np.ones_like(alpha_end)
-        cm_end = cm_high * np.ones_like(alpha_end)
-
-        alpha = np.concatenate((alpha_start, self.alpha, alpha_end))
-        cl = np.concatenate((cl_start, self.cl, cl_end))
-        cd = np.concatenate((cd_start, self.cd, cd_end))
-        cm = np.concatenate((cm_start, self.cm, cm_end))
-
-        return type(self)(self.Re, alpha, cl, cd, cm)
 
     def unsteadyparam(self, alpha_linear_min=-5, alpha_linear_max=5):
         """compute unsteady aero parameters used in AeroDyn input file
@@ -468,7 +430,7 @@ class Polar(object):
         alpha_linear_min = radians(alpha_linear_min)
         alpha_linear_max = radians(alpha_linear_max)
 
-        cn = cl * np.cos(alpha) + cd * np.sin(alpha)
+        cn = cl*np.cos(alpha) + cd*np.sin(alpha)
 
         # find linear region
         idx = np.logical_and(alpha >= alpha_linear_min,
@@ -481,23 +443,23 @@ class Polar(object):
         # linear fit
         p = np.polyfit(alpha[idx], cn[idx], 1)
         m = p[0]
-        alpha0 = -p[1] / m
+        alpha0 = -p[1]/m
 
         # find cn at stall locations
         alphaUpper = np.radians(np.arange(40.0))
         alphaLower = np.radians(np.arange(5.0, -40.0, -1))
         cnUpper = np.interp(alphaUpper, alpha, cn)
         cnLower = np.interp(alphaLower, alpha, cn)
-        cnLinearUpper = m * (alphaUpper - alpha0)
-        cnLinearLower = m * (alphaLower - alpha0)
+        cnLinearUpper = m*(alphaUpper - alpha0)
+        cnLinearLower = m*(alphaLower - alpha0)
         deviation = 0.05  # threshold for cl in detecting stall
 
-        alphaU = np.interp(deviation, cnLinearUpper - cnUpper, alphaUpper)
-        alphaL = np.interp(deviation, cnLower - cnLinearLower, alphaLower)
+        alphaU = np.interp(deviation, cnLinearUpper-cnUpper, alphaUpper)
+        alphaL = np.interp(deviation, cnLower-cnLinearLower, alphaLower)
 
         # compute cn at stall according to linear fit
-        cnStallUpper = m * (alphaU - alpha0)
-        cnStallLower = m * (alphaL - alpha0)
+        cnStallUpper = m*(alphaU-alpha0)
+        cnStallLower = m*(alphaL-alpha0)
 
         # find min cd
         minIdx = cd.argmin()
@@ -525,7 +487,7 @@ class Polar(object):
         fig = plt.figure()
         figs.append(fig)
         ax = fig.add_subplot(111)
-        plt.plot(p.alpha, p.cl, label='Re = ' + str(p.Re / 1e6) + ' million')
+        plt.plot(p.alpha, p.cl, label='Re = ' + str(p.Re/1e6) + ' million')
         ax.set_xlabel('angle of attack (deg)')
         ax.set_ylabel('lift coefficient')
         ax.legend(loc='best')
@@ -534,7 +496,7 @@ class Polar(object):
         fig = plt.figure()
         figs.append(fig)
         ax = fig.add_subplot(111)
-        ax.plot(p.alpha, p.cd, label='Re = ' + str(p.Re / 1e6) + ' million')
+        ax.plot(p.alpha, p.cd, label='Re = ' + str(p.Re/1e6) + ' million')
         ax.set_xlabel('angle of attack (deg)')
         ax.set_ylabel('drag coefficient')
         ax.legend(loc='best')
@@ -543,7 +505,7 @@ class Polar(object):
         fig = plt.figure()
         figs.append(fig)
         ax = fig.add_subplot(111)
-        ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re / 1e6) + ' million')
+        ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
         ax.set_xlabel('angle of attack (deg)')
         ax.set_ylabel('moment coefficient')
         ax.legend(loc='best')
@@ -571,6 +533,7 @@ class Airfoil(object):
 
         # save type of polar we are using
         self.polar_type = polars[0].__class__
+
 
     @classmethod
     def initFromAerodynFile(cls, aerodynFile, polarType=Polar):
@@ -602,10 +565,10 @@ class Airfoil(object):
         for i in range(numTables):
 
             # read Reynolds number
-            Re = float(f.readline().split()[0]) * 1e6
+            Re = float(f.readline().split()[0])*1e6
 
             # read Aerodyn parameters
-            param = [0] * 8
+            param = [0]*8
             for j in range(8):
                 param[j] = float(f.readline().split()[0])
 
@@ -630,6 +593,8 @@ class Airfoil(object):
         f.close()
 
         return cls(polars)
+
+
 
     def getPolar(self, Re):
         """Gets a Polar object for this airfoil at the specified Reynolds number.
@@ -662,8 +627,10 @@ class Airfoil(object):
         else:
             Relist = [pp.Re for pp in p]
             i = np.searchsorted(Relist, Re)
-            weight = (Re - Relist[i - 1]) / (Relist[i] - Relist[i - 1])
-            return p[i - 1].blend(p[i], weight)
+            weight = (Re - Relist[i-1]) / (Relist[i] - Relist[i-1])
+            return p[i-1].blend(p[i], weight)
+
+
 
     def blend(self, other, weight):
         """Blend this Airfoil with another one with the specified weighting.
@@ -695,13 +662,15 @@ class Airfoil(object):
 
         # blend polars
         n = len(Relist)
-        polars = [0] * n
+        polars = [0]*n
         for i in range(n):
             p1 = self.getPolar(Relist[i])
             p2 = other.getPolar(Relist[i])
             polars[i] = p1.blend(p2, weight)
 
+
         return Airfoil(polars)
+
 
     def correction3D(self, r_over_R, chord_over_r, tsr, alpha_max_corr=30,
                      alpha_linear_min=-5, alpha_linear_max=5):
@@ -734,12 +703,12 @@ class Airfoil(object):
         """
 
         n = len(self.polars)
-        polars = [0] * n
+        polars = [0]*n
         for idx, p in enumerate(self.polars):
-            polars[idx] = p.correction3D(
-                r_over_R, chord_over_r, tsr, alpha_max_corr, alpha_linear_min, alpha_linear_max)
+            polars[idx] = p.correction3D(r_over_R, chord_over_r, tsr, alpha_max_corr, alpha_linear_min, alpha_linear_max)
 
         return Airfoil(polars)
+
 
     def extrapolate(self, cdmax, AR=None, cdmin=0.001):
         """apply high alpha extensions to each polar in airfoil
@@ -765,11 +734,13 @@ class Airfoil(object):
         """
 
         n = len(self.polars)
-        polars = [0] * n
+        polars = [0]*n
         for idx, p in enumerate(self.polars):
             polars[idx] = p.extrapolate(cdmax, AR, cdmin)
 
         return Airfoil(polars)
+
+
 
     def interpToCommonAlpha(self, alpha=None):
         """Interpolates all polars to a common set of angles of attack
@@ -790,7 +761,7 @@ class Airfoil(object):
 
         # interpolate each polar to new alpha
         n = len(self.polars)
-        polars = [0] * n
+        polars = [0]*n
         for idx, p in enumerate(self.polars):
             cl = np.interp(alpha, p.alpha, p.cl)
             cd = np.interp(alpha, p.alpha, p.cd)
@@ -798,6 +769,10 @@ class Airfoil(object):
             polars[idx] = self.polar_type(p.Re, alpha, cl, cd, cm)
 
         return Airfoil(polars)
+
+
+
+
 
     def writeToAerodynFile(self, filename):
         """Write the airfoil section data to a file using AeroDyn input file style.
@@ -814,36 +789,26 @@ class Airfoil(object):
 
         f = open(filename, 'w')
 
-        f.write('AeroDyn airfoil file.' + '\n')
-        f.write('Compatible with AeroDyn v13.0.' + '\n')
-        f.write('Generated by airfoilprep.py' + '\n')
-        f.write('{0:<10d}\t\t{1:40}'.format(len(af.polars),
-                                            'Number of airfoil tables in this file' + '\n'))
+        f.write('AeroDyn airfoil file.')
+        f.write('Compatible with AeroDyn v13.0.')
+        f.write('Generated by airfoilprep.py')
+        f.write('{0:<10d}\t\t{1:40}'.format(len(af.polars), 'Number of airfoil tables in this file'))
         for p in af.polars:
-            f.write('{0:<10f}\t{1:40}'.format(
-                p.Re / 1e6, 'Reynolds number in millions.' + '\n'))
+            f.write('{0:<10f}\t{1:40}'.format(p.Re/1e6, 'Reynolds number in millions.'))
             param = p.unsteadyparam()
-            f.write('{0:<10f}\t{1:40}'.format(
-                param[0], 'Control setting' + '\n'))
-            f.write('{0:<10f}\t{1:40}'.format(
-                param[1], 'Stall angle (deg)' + '\n'))
-            f.write('{0:<10f}\t{1:40}'.format(
-                param[2], 'Angle of attack for zero Cn for linear Cn curve (deg)' + '\n'))
-            f.write('{0:<10f}\t{1:40}'.format(
-                param[3], 'Cn slope for zero lift for linear Cn curve (1/rad)' + '\n'))
-            f.write('{0:<10f}\t{1:40}'.format(
-                param[4], 'Cn at stall value for positive angle of attack for linear Cn curve' + '\n'))
-            f.write('{0:<10f}\t{1:40}'.format(
-                param[5], 'Cn at stall value for negative angle of attack for linear Cn curve' + '\n'))
-            f.write('{0:<10f}\t{1:40}'.format(
-                param[6], 'Angle of attack for minimum CD (deg)' + '\n'))
-            f.write('{0:<10f}\t{1:40}'.format(
-                param[7], 'Minimum CD value') + '\n')
+            f.write('{0:<10f}\t{1:40}'.format(param[0], 'Control setting'))
+            f.write('{0:<10f}\t{1:40}'.format(param[1], 'Stall angle (deg)'))
+            f.write('{0:<10f}\t{1:40}'.format(param[2], 'Angle of attack for zero Cn for linear Cn curve (deg)'))
+            f.write('{0:<10f}\t{1:40}'.format(param[3], 'Cn slope for zero lift for linear Cn curve (1/rad)'))
+            f.write('{0:<10f}\t{1:40}'.format(param[4], 'Cn at stall value for positive angle of attack for linear Cn curve'))
+            f.write('{0:<10f}\t{1:40}'.format(param[5], 'Cn at stall value for negative angle of attack for linear Cn curve'))
+            f.write('{0:<10f}\t{1:40}'.format(param[6], 'Angle of attack for minimum CD (deg)'))
+            f.write('{0:<10f}\t{1:40}'.format(param[7], 'Minimum CD value'))
             for a, cl, cd, cm in zip(p.alpha, p.cl, p.cd, p.cm):
-                f.write('{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}'.format(
-                    a, cl, cd, cm) + '\n')
-            f.write('EOT' + '\n')
+                f.write('{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}'.format(a, cl, cd, cm))
+            f.write('EOT')
         f.close()
+
 
     def createDataGrid(self):
         """interpolate airfoil data onto uniform alpha-Re grid.
@@ -882,7 +847,10 @@ class Airfoil(object):
             cd[:, idx] = p.cd
             cm[:, idx] = p.cm
 
+
         return alpha, Re, cl, cd, cm
+
+
 
     def plot(self, single_figure=True):
         """plot cl/cd/cm polars
@@ -914,8 +882,7 @@ class Airfoil(object):
             ax2 = fig2.add_subplot(111)
             figs.append(fig2)
 
-            # loop through all polars to see if we need to generate handles for
-            # cm figs
+            # loop through all polars to see if we need to generate handles for cm figs
             for p in self.polars:
                 if p.useCM == True:
                     fig3 = plt.figure()
@@ -926,22 +893,19 @@ class Airfoil(object):
             # loop through polars and plot
             for p in self.polars:
                 # plot cl
-                ax1.plot(p.alpha, p.cl, label='Re = ' +
-                         str(p.Re / 1e6) + ' million')
+                ax1.plot(p.alpha, p.cl, label='Re = ' + str(p.Re/1e6) + ' million')
                 ax1.set_xlabel('angle of attack (deg)')
                 ax1.set_ylabel('lift coefficient')
                 ax1.legend(loc='best')
 
                 # plot cd
-                ax2.plot(p.alpha, p.cd, label='Re = ' +
-                         str(p.Re / 1e6) + ' million')
+                ax2.plot(p.alpha, p.cd, label='Re = ' + str(p.Re/1e6) + ' million')
                 ax2.set_xlabel('angle of attack (deg)')
                 ax2.set_ylabel('drag coefficient')
                 ax2.legend(loc='best')
 
                 # plot cm
-                ax3.plot(p.alpha, p.cm, label='Re = ' +
-                         str(p.Re / 1e6) + ' million')
+                ax3.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
                 ax3.set_xlabel('angle of attack (deg)')
                 ax3.set_ylabel('moment coefficient')
                 ax3.legend(loc='best')
@@ -952,8 +916,7 @@ class Airfoil(object):
                 fig = plt.figure()
                 figs.append(fig)
                 ax = fig.add_subplot(111)
-                ax.plot(p.alpha, p.cl, label='Re = ' +
-                        str(p.Re / 1e6) + ' million')
+                ax.plot(p.alpha, p.cl, label='Re = ' + str(p.Re/1e6) + ' million')
                 ax.set_xlabel('angle of attack (deg)')
                 ax.set_ylabel('lift coefficient')
                 ax.legend(loc='best')
@@ -961,8 +924,7 @@ class Airfoil(object):
                 fig = plt.figure()
                 figs.append(fig)
                 ax = fig.add_subplot(111)
-                ax.plot(p.alpha, p.cd, label='Re = ' +
-                        str(p.Re / 1e6) + ' million')
+                ax.plot(p.alpha, p.cd, label='Re = ' + str(p.Re/1e6) + ' million')
                 ax.set_xlabel('angle of attack (deg)')
                 ax.set_ylabel('drag coefficient')
                 ax.legend(loc='best')
@@ -970,8 +932,7 @@ class Airfoil(object):
                 fig = plt.figure()
                 figs.append(fig)
                 ax = fig.add_subplot(111)
-                ax.plot(p.alpha, p.cm, label='Re = ' +
-                        str(p.Re / 1e6) + ' million')
+                ax.plot(p.alpha, p.cm, label='Re = ' + str(p.Re/1e6) + ' million')
                 ax.set_xlabel('angle of attack (deg)')
                 ax.set_ylabel('moment coefficient')
                 ax.legend(loc='best')
@@ -998,8 +959,7 @@ class Airfoil(object):
     #     Notes
     #     -----
     #     Uses a spline so that output is continuously differentiable
-    # also uses a small amount of smoothing to help remove spurious multiple
-    # solutions
+    #     also uses a small amount of smoothing to help remove spurious multiple solutions
 
     #     """
 
@@ -1029,6 +989,10 @@ class Airfoil(object):
     #     return cl, cd
 
 
+
+
+
+
 if __name__ == '__main__':
 
     import os
@@ -1038,17 +1002,13 @@ if __name__ == '__main__':
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter,
                             description='Preprocessing airfoil data for wind turbine applications.')
     parser.add_argument('src_file', type=str, help='source file')
-    parser.add_argument('--stall3D', type=str, nargs=3, metavar=('r/R',
-                                                                 'c/r', 'tsr'), help='2D data -> apply 3D corrections')
-    parser.add_argument('--extrap', type=str, nargs=1, metavar=('cdmax'),
-                        help='3D data -> high alpha extrapolations')
-    parser.add_argument('--blend', type=str, nargs=2, metavar=('otherfile', 'weight'),
-                        help='blend 2 files weight 0: sourcefile, weight 1: otherfile')
+    parser.add_argument('--stall3D', type=str, nargs=3, metavar=('r/R', 'c/r', 'tsr'), help='2D data -> apply 3D corrections')
+    parser.add_argument('--extrap', type=str, nargs=1, metavar=('cdmax'), help='3D data -> high alpha extrapolations')
+    parser.add_argument('--blend', type=str, nargs=2, metavar=('otherfile', 'weight'), help='blend 2 files weight 0: sourcefile, weight 1: otherfile')
     parser.add_argument('--out', type=str, help='output file')
-    parser.add_argument('--plot', action='store_true',
-                        help='plot data using matplotlib')
-    parser.add_argument('--common', action='store_true',
-                        help='interpolate the data at different Reynolds numbers to a common set of angles of attack')
+    parser.add_argument('--plot', action='store_true', help='plot data using matplotlib')
+    parser.add_argument('--common', action='store_true', help='interpolate the data at different Reynolds numbers to a common set of angles of attack')
+
 
     # parse command line arguments
     args = parser.parse_args()
@@ -1098,6 +1058,7 @@ if __name__ == '__main__':
 
             plt.show()
 
+
     elif args.extrap is not None:
 
         if fileOut is None:
@@ -1145,6 +1106,7 @@ if __name__ == '__main__':
 
             plt.show()
 
+
     elif args.blend is not None:
 
         if fileOut is None:
@@ -1161,6 +1123,8 @@ if __name__ == '__main__':
 
         afOut.writeToAerodynFile(fileOut)
 
+
+
         if args.plot:
 
             for p in afOut.polars:
@@ -1169,23 +1133,20 @@ if __name__ == '__main__':
                 plt.plot(p.alpha, p.cl, 'k')
                 plt.xlabel('angle of attack (deg)')
                 plt.ylabel('lift coefficient')
-                plt.text(0.6, 0.2, 'Re = ' + str(p.Re / 1e6) +
-                         ' million', transform=ax.transAxes)
+                plt.text(0.6, 0.2, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
 
                 fig = plt.figure()
                 ax = fig.add_subplot(111)
                 plt.plot(p.alpha, p.cd, 'k')
                 plt.xlabel('angle of attack (deg)')
                 plt.ylabel('drag coefficient')
-                plt.text(0.2, 0.8, 'Re = ' + str(p.Re / 1e6) +
-                         ' million', transform=ax.transAxes)
+                plt.text(0.2, 0.8, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
 
                 fig = plt.figure()
                 ax = fig.add_subplot(111)
                 plt.plot(p.alpha, p.cm, 'k')
                 plt.xlabel('angle of attack (deg)')
                 plt.ylabel('moment coefficient')
-                plt.text(0.2, 0.8, 'Re = ' + str(p.Re / 1e6) +
-                         ' million', transform=ax.transAxes)
+                plt.text(0.2, 0.8, 'Re = ' + str(p.Re/1e6) + ' million', transform=ax.transAxes)
 
             plt.show()
