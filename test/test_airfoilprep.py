@@ -1,8 +1,7 @@
 import unittest
 import numpy as np
-from math import pi
 
-from wisdem.airfoilprep import Polar, Airfoil
+from airfoilprep.airfoilprep import Polar, Airfoil
 
 
 class TestBlend(unittest.TestCase):
@@ -208,7 +207,7 @@ class Test3DStall(unittest.TestCase):
         R = 2.4
         r = 0.25*R
         chord = 0.18
-        Omega = 200*pi/30
+        Omega = 200*np.pi/30
         Uinf = 10.0
         tsr = Omega*R/Uinf
 
@@ -239,7 +238,7 @@ class Test3DStall(unittest.TestCase):
         R = 2.4
         r = 0.25*R
         chord = 0.18
-        Omega = 200*pi/30
+        Omega = 200*np.pi/30
         Uinf = 10.0
         tsr = Omega*R/Uinf
 
@@ -283,7 +282,7 @@ class Test3DStall(unittest.TestCase):
         R = 2.4
         r = 0.75*R
         chord = 0.28
-        Omega = 200*pi/30
+        Omega = 200*np.pi/30
         Uinf = 14.0
         tsr = Omega*R/Uinf
 
@@ -320,7 +319,7 @@ class Test3DStall(unittest.TestCase):
         R = 5.0
         r = 0.5*R
         chord = 0.5
-        Omega = 100*pi/30
+        Omega = 100*np.pi/30
         Uinf = 10.0
         tsr = Omega*R/Uinf
 
@@ -351,7 +350,7 @@ class Test3DStall(unittest.TestCase):
         R = 5.0
         r = 0.5*R
         chord = 0.5
-        Omega = 100*pi/30
+        Omega = 100*np.pi/30
         Uinf = 10.0
         tsr = Omega*R/Uinf
 
